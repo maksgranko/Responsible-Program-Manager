@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Security.Policy;
+using System.Xml.Linq;
 
 namespace Responsible_Program_Manager
 {
@@ -30,7 +32,9 @@ namespace Responsible_Program_Manager
                         InstalledVersion TEXT,
                         Version TEXT,
                         IconPath TEXT,
-                        InstallArguments TEXT NOT NULL
+                        Categories TEXT,
+                        InstallArguments TEXT NOT NULL,
+                        DownloadPath TEXT
                     );
                 ";
 
@@ -41,15 +45,18 @@ namespace Responsible_Program_Manager
             }
         }
 
-        public void AddFileSystemItem(string codeName, string name, string publisher, string installedVersion, string version, string iconPath, string installArguments)
+
+    
+
+        public void AddFileSystemItem(string codeName, string name, string publisher, string installedVersion, string version, string iconPath, string installArguments, string downloadPath)
         {
             using (var connection = new SQLiteConnection(_connectionString))
             {
                 connection.Open();
 
                 string insertQuery = @"
-                    INSERT INTO FileSystemItems (CodeName, Name, Publisher, InstalledVersion, Version, IconPath, InstallArguments)
-                    VALUES (@CodeName, @Name, @Publisher, @InstalledVersion, @Version, @IconPath, @InstallArguments);
+                    INSERT INTO FileSystemItems (CodeName, Name, Publisher, InstalledVersion, Version, IconPath, Categories, InstallArguments, DownloadPath)
+                    VALUES (@CodeName, @Name, @Publisher, @InstalledVersion, @Version, @IconPath, @Categories, @InstallArguments, @DownloadPath);
                 ";
 
                 using (var command = new SQLiteCommand(insertQuery, connection))
@@ -60,7 +67,9 @@ namespace Responsible_Program_Manager
                     command.Parameters.AddWithValue("@InstalledVersion", installedVersion ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Version", version ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@IconPath", iconPath ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@Categories", DBNull.Value); // Adjusted for simplicity
                     command.Parameters.AddWithValue("@InstallArguments", installArguments);
+                    command.Parameters.AddWithValue("@DownloadPath", downloadPath ?? (object)DBNull.Value);
 
                     command.ExecuteNonQuery();
                 }
@@ -91,7 +100,8 @@ namespace Responsible_Program_Manager
                                 InstalledVersion = reader["InstalledVersion"]?.ToString(),
                                 Version = reader["Version"]?.ToString(),
                                 IconPath = reader["IconPath"]?.ToString(),
-                                InstallArguments = reader["InstallArguments"].ToString()
+                                InstallArguments = reader["InstallArguments"].ToString(),
+                                DownloadPath = reader["DownloadPath"]?.ToString() // Новое поле
                             });
                         }
                     }
@@ -128,7 +138,9 @@ namespace Responsible_Program_Manager
                                 InstalledVersion = reader["InstalledVersion"]?.ToString(),
                                 Version = reader["Version"]?.ToString(),
                                 IconPath = reader["IconPath"]?.ToString(),
-                                InstallArguments = reader["InstallArguments"].ToString()
+                                InstallArguments = reader["InstallArguments"].ToString(),
+                                Categories = reader["Categories"]?.ToString().Split(';'),
+                                DownloadPath = reader["DownloadPath"]?.ToString() // Новое поле
                             });
                         }
                     }

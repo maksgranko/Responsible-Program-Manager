@@ -49,7 +49,8 @@ namespace Responsible_Program_Manager
         public string Version { get; set; }
         public string IconPath { get; set; }
         public string[] Categories { get; set; }
-        public string InstallArguments { get; set; } // Новый параметр
+        public string InstallArguments { get; set; }
+        public string DownloadPath { get; set; } // Новое поле
 
         public override string ToString()
         {

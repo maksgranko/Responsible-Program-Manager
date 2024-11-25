@@ -42,7 +42,7 @@
             </ListBox>
             <Label x:Name="selected_apps_label" Content="Выбранные приложения:" Margin="25,0,25,203" FontSize="16" MinHeight="32" MinWidth="211" Height="32" VerticalAlignment="Bottom"/>
             <Label x:Name="all_apps_label" Content="Приложения:" Margin="25,11,310,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" MinWidth="139"/>
-            <ComboBox Margin="0,16,25,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" Width="120"/>
+            <ComboBox x:Name="categories_cb" Margin="0,16,25,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" Width="120"/>
             <Label x:Name="categories_label" Content="Категории:" Margin="305,11,150,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" HorizontalContentAlignment="Right" MinWidth="91"/>
         </Grid>
         <StackPanel>

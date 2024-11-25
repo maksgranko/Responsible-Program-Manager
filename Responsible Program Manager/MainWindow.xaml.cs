@@ -44,7 +44,8 @@ namespace Responsible_Program_Manager
                             item.InstalledVersion,
                             item.Version,
                             item.IconPath,
-                            item.InstallArguments
+                            item.InstallArguments,
+                            item.DownloadPath
                         );
                     }
                 }
@@ -83,6 +84,7 @@ namespace Responsible_Program_Manager
                 }
 
                 AllApps_lbm.Clear();
+                SelectedApps_lbm.Clear();
                 AllApps_lbm.AddItems(AllFileSystemItems);
 
                 MessageBox.Show("Данные успешно загружены из базы!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
