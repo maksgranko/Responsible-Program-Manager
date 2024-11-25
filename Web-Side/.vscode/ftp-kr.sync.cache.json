@@ -1,0 +1,19 @@
+{
+  "ftp://tosters_offi@213.219.205.102:21": {
+    "index.html": {
+      "type": "-",
+      "size": 366,
+      "lmtime": 1732566766757.2334,
+      "modified": false
+    },
+    "api": {
+      "getAllAppLinks.php": {
+        "type": "-",
+        "size": 1067,
+        "lmtime": 1732567199220.0256,
+        "modified": false
+      }
+    }
+  },
+  "$version": 1
+}

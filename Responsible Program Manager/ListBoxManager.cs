@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+
+using System.Collections.Generic;
 using System.Windows.Controls;
 
 namespace Responsible_Program_Manager
 {
-
     public class ListBoxManager
     {
         private ListBox listBox;
@@ -49,6 +49,7 @@ namespace Responsible_Program_Manager
         public string Version { get; set; }
         public string IconPath { get; set; }
         public string[] Categories { get; set; }
+        public string InstallArguments { get; set; } // Новый параметр
 
         public override string ToString()
         {

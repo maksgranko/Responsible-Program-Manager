@@ -1,0 +1,16 @@
+{
+    "host": "213.219.205.102",
+    "username": "tosters_offi",
+    "password": "L1BUCu0MpNL4rOnt",
+    "remotePath": "",
+    "protocol": "ftp",
+    "port": 21,
+    "fileNameEncoding": "utf8",
+    "autoUpload": true,
+    "autoDelete": true,
+    "autoDownload": true,
+    "ignore": [
+        ".git",
+        "/.vscode"
+    ]
+}
