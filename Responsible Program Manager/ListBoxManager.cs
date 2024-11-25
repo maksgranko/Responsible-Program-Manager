@@ -45,12 +45,13 @@ namespace Responsible_Program_Manager
         public string CodeName { get; set; }
         public string Name { get; set; }
         public string Publisher { get; set; }
-        public string InstalledVersion { get; set; }
+        public string InstalledVersion { get; set; } // Только для SQLite
         public string Version { get; set; }
-        public string IconPath { get; set; }
+        public string IconPath { get; set; } // Путь к кэшированным данным
+        public string IconUrl { get; set; } // Новый URL для удалённой базы
         public string[] Categories { get; set; }
         public string InstallArguments { get; set; }
-        public string DownloadPath { get; set; } // Новое поле
+        public string DownloadPath { get; set; }
 
         public override string ToString()
         {
