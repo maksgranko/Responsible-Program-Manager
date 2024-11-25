@@ -17,30 +17,32 @@ namespace Responsible_Program_Manager
 
         public MainWindow()
         {
+            UpdateDatabase();
             AllFileSystemItems = dbm.GetAllFileSystemItems();
 
             InitializeComponent();
             AllApps_lbm = new ListBoxManager(AllApps_ExplorerListBox);
             SelectedApps_lbm = new ListBoxManager(Selected_ExplorerListBox);
+            AllApps_lbm.AddItems(AllFileSystemItems);
         }
 
-        private async void UpdateDatabase()
+        private void UpdateDatabase()
         {
-            string apiUrl = "https://api.example.com/apps";
+            string apiUrl = "https://tosters-office.online/api/getAllAppLinks.php";
 
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    HttpResponseMessage response = await client.GetAsync(apiUrl);
+                    HttpResponseMessage response = client.GetAsync(apiUrl).GetAwaiter().GetResult();
                     response.EnsureSuccessStatusCode();
-                    string jsonResponse = await response.Content.ReadAsStringAsync();
+                    string jsonResponse = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
                     List<FileSystemItem> itemsFromApi = JsonConvert.DeserializeObject<List<FileSystemItem>>(jsonResponse);
 
                     foreach (var item in itemsFromApi)
                     {
-                        dbm.AddFileSystemItem(
+                        dbm.AddOrUpdateFileSystemItem(
                             item.CodeName,
                             item.Name,
                             item.Publisher,
@@ -112,7 +114,8 @@ namespace Responsible_Program_Manager
             {
                 if (item.Categories != null)
                 {
-                    foreach (var category in item.Categories)
+                    string[] item_categories = item.Categories.Split(';');
+                    foreach (var category in item_categories)
                     {
                         uniqueCategories.Add(category.Trim());
                     }

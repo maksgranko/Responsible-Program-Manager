@@ -22,20 +22,20 @@ namespace Responsible_Program_Manager
                 connection.Open();
 
                 string createTableQuery = @"
-                    CREATE TABLE IF NOT EXISTS FileSystemItems (
-                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        CodeName TEXT NOT NULL,
-                        Name TEXT NOT NULL,
-                        Publisher TEXT,
-                        InstalledVersion TEXT,
-                        Version TEXT,
-                        IconPath TEXT,
-                        IconUrl TEXT,
-                        Categories TEXT,
-                        InstallArguments TEXT NOT NULL,
-                        DownloadPath TEXT
-                    );
-                ";
+            CREATE TABLE IF NOT EXISTS FileSystemItems (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                CodeName TEXT NOT NULL UNIQUE, -- Уникальность для CodeName
+                Name TEXT NOT NULL,
+                Publisher TEXT,
+                InstalledVersion TEXT,
+                Version TEXT,
+                IconPath TEXT,
+                IconUrl TEXT,
+                Categories TEXT,
+                InstallArguments TEXT NOT NULL,
+                DownloadPath TEXT
+            );
+        ";
 
                 using (var command = new SQLiteCommand(createTableQuery, connection))
                 {
@@ -44,20 +44,31 @@ namespace Responsible_Program_Manager
             }
         }
 
-        public void AddFileSystemItem(string codeName, string name, string publisher, string installedVersion, string version, string iconPath, string iconUrl, string[] categories, string installArguments, string downloadPath)
+        public void AddOrUpdateFileSystemItem(string codeName, string name, string publisher, string installedVersion, string version, string iconPath, string iconUrl, string categories, string installArguments, string downloadPath)
         {
             using (var connection = new SQLiteConnection(_connectionString))
             {
                 connection.Open();
 
-                string insertQuery = @"
-                    INSERT INTO FileSystemItems 
-                        (CodeName, Name, Publisher, InstalledVersion, Version, IconPath, IconUrl, Categories, InstallArguments, DownloadPath)
-                    VALUES 
-                        (@CodeName, @Name, @Publisher, @InstalledVersion, @Version, @IconPath, @IconUrl, @Categories, @InstallArguments, @DownloadPath);
-                ";
+                string query = @"
+            INSERT OR REPLACE INTO FileSystemItems 
+            (Id, CodeName, Name, Publisher, InstalledVersion, Version, IconPath, IconUrl, Categories, InstallArguments, DownloadPath)
+            VALUES (
+                (SELECT Id FROM FileSystemItems WHERE CodeName = @CodeName), -- Используем существующий Id, если запись есть
+                @CodeName, 
+                @Name, 
+                @Publisher, 
+                @InstalledVersion, 
+                @Version, 
+                @IconPath, 
+                @IconUrl, 
+                @Categories, 
+                @InstallArguments, 
+                @DownloadPath
+            );
+        ";
 
-                using (var command = new SQLiteCommand(insertQuery, connection))
+                using (var command = new SQLiteCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@CodeName", codeName);
                     command.Parameters.AddWithValue("@Name", name);
@@ -121,7 +132,7 @@ namespace Responsible_Program_Manager
                                 Version = reader["Version"]?.ToString(),
                                 IconPath = reader["IconPath"]?.ToString(), // Путь к кэшированным данным
                                 IconUrl = reader["IconUrl"]?.ToString(), // Новый URL для удалённой базы
-                                Categories = reader["Categories"]?.ToString()?.Split(';'), // Преобразуем строку в массив
+                                Categories = reader["Categories"]?.ToString(), // Преобразуем строку в массив
                                 InstallArguments = reader["InstallArguments"]?.ToString(),
                                 DownloadPath = reader["DownloadPath"]?.ToString()
                             });
@@ -161,7 +172,7 @@ namespace Responsible_Program_Manager
                                 Version = reader["Version"]?.ToString(),
                                 IconPath = reader["IconPath"]?.ToString(), // Путь к кэшированным данным
                                 IconUrl = reader["IconUrl"]?.ToString(), // Новый URL для удалённой базы
-                                Categories = reader["Categories"]?.ToString()?.Split(';'), // Преобразуем строку в массив
+                                Categories = reader["Categories"]?.ToString(), // Преобразуем строку в массив
                                 InstallArguments = reader["InstallArguments"]?.ToString(),
                                 DownloadPath = reader["DownloadPath"]?.ToString()
                             });

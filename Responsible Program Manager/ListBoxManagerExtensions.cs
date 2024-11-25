@@ -9,7 +9,7 @@ namespace Responsible_Program_Manager
 {
     public static class ListBoxManagerExtensions
     {
-        public static void AddItem(this ListBoxManager manager, string codeName, string name, string publisher = null, string installedVersion = null, string version = null, string iconPath = null, string[] categories = null)
+        public static void AddItem(this ListBoxManager manager, string codeName, string name, string publisher = null, string installedVersion = null, string version = null, string iconPath = null, string categories = null)
         {
             if (string.IsNullOrWhiteSpace(codeName) || string.IsNullOrWhiteSpace(name))
             {
