@@ -9,7 +9,9 @@ namespace Responsible_Program_Manager
 {
     public static class ListBoxManagerExtensions
     {
-        public static void AddItem(this ListBoxManager manager, string codeName, string name, string publisher = null, string installedVersion = null, string version = null, string iconPath = null, string categories = null)
+        public static void AddItem(this ListBoxManager manager, string codeName, string name, string publisher = null, string installedVersion = null,
+                           string version = null, string iconPath = null, string iconUrl = null, string categories = null,
+                           string installArguments = null, string downloadPath = null, string cachedPath = null)
         {
             if (string.IsNullOrWhiteSpace(codeName) || string.IsNullOrWhiteSpace(name))
             {
@@ -23,13 +25,16 @@ namespace Responsible_Program_Manager
                 Publisher = publisher,
                 InstalledVersion = installedVersion,
                 Version = version,
+                IconPath = iconPath,
+                IconUrl = iconUrl,
                 Categories = categories,
-                IconPath = iconPath
+                InstallArguments = installArguments,
+                DownloadPath = downloadPath,
+                CachedPath = cachedPath
             };
 
             manager.AddItem(item);
         }
-
         private static void AddItem(this ListBoxManager manager, FileSystemItem item)
         {
             var listBox = typeof(ListBoxManager).GetField("listBox", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(manager) as ListBox;

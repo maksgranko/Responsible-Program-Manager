@@ -14,35 +14,75 @@
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Column="1">
-            <ListBox x:Name="AllApps_ExplorerListBox" Margin="25,48,25,238">
+            <ListBox x:Name="AllApps_ExplorerListBox" Margin="25,48,25,238" MouseDoubleClick="AllApps_ExplorerListBox_MouseDoubleClick">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <Image Width="32" Height="32" Margin="5,0,10,0" Source="{Binding IconPath}" />
-                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
-                        </StackPanel>
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="40" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="40" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="40" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="40" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Image Grid.Column="0" Width="32" Height="32" Margin="5,0" Source="{Binding IconPath}" />
+                            <TextBlock Grid.Column="2" Text="{Binding Name}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="4" Text="{Binding Publisher}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="8" Text="{Binding InstalledVersion}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="6" Text="{Binding Version}" VerticalAlignment="Center" />
+                        </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
-            </ListBox>
-            <Button x:Name="apply_btn" Grid.Column="1" Content="Применить" Margin="0,0,25,10" HorizontalAlignment="Right" Width="119" Height="25" VerticalAlignment="Bottom"/>
+            </ListBox>
+            <Button x:Name="apply_btn" Grid.Column="1" Content="Применить" Margin="0,0,25,10" HorizontalAlignment="Right" Width="119" Height="25" VerticalAlignment="Bottom" Click="ApplyButton_Click"/>
             <ComboBox x:Name="apply_mode_combobox" Grid.Column="1" Margin="25,0,163,10" Height="25" VerticalAlignment="Bottom" SelectedIndex="2">
-                <Label x:Name="button" Content="Только загрузить"/>
+                <Label x:Name="button" Content="Только загрузить" />
                 <Label Content="Только установить"/>
                 <Label Content="Загрузить и установить"/>
             </ComboBox>
-            <ListBox x:Name="Selected_ExplorerListBox" Margin="25,0,25,53" Height="148" VerticalAlignment="Bottom">
+            <ListBox x:Name="Selected_ExplorerListBox" Margin="25,0,25,53" Height="148" VerticalAlignment="Bottom" MouseDoubleClick="Selected_ExplorerListBox_MouseDoubleClick">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <Image Width="32" Height="32" Margin="5,0,10,0" Source="{Binding IconPath}" />
-                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
-                        </StackPanel>
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <!-- Для изображения -->
+                                <ColumnDefinition Width="10" />
+                                <!-- Отступ -->
+                                <ColumnDefinition Width="100" />
+                                <!-- Для Name -->
+                                <ColumnDefinition Width="10" />
+                                <!-- Отступ -->
+                                <ColumnDefinition Width="100" />
+                                <!-- Для Publisher -->
+                                <ColumnDefinition Width="10" />
+                                <!-- Отступ -->
+                                <ColumnDefinition Width="100" />
+                                <!-- Для Version -->
+                                <ColumnDefinition Width="10" />
+                                <!-- Отступ -->
+                                <ColumnDefinition Width="100" />
+                                <!-- Для InstalledVersion -->
+                            </Grid.ColumnDefinitions>
+
+                            <Image Grid.Column="0" Width="32" Height="32" Margin="5,0" Source="{Binding IconPath}" />
+                            <TextBlock Grid.Column="2" Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="4" Text="{Binding Publisher}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="6" Text="{Binding Version}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="8" Text="{Binding InstalledVersion}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
+
             <Label x:Name="selected_apps_label" Content="Выбранные приложения:" Margin="25,0,25,203" FontSize="16" MinHeight="32" MinWidth="211" Height="32" VerticalAlignment="Bottom"/>
             <Label x:Name="all_apps_label" Content="Приложения:" Margin="25,11,310,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" MinWidth="139"/>
-            <ComboBox x:Name="categories_cb" Margin="0,16,25,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" Width="120"/>
+            <ComboBox x:Name="categories_cb" Margin="0,16,25,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" Width="120" SelectionChanged="CategoriesComboBox_SelectionChanged"/>
             <Label x:Name="categories_label" Content="Категории:" Margin="305,11,150,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" HorizontalContentAlignment="Right" MinWidth="91"/>
         </Grid>
         <StackPanel>

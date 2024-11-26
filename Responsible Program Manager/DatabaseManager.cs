@@ -2,6 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.IO;
+using System.Net.Http;
+using System.Windows;
 
 namespace Responsible_Program_Manager
 {
@@ -33,7 +36,8 @@ namespace Responsible_Program_Manager
                 IconUrl TEXT,
                 Categories TEXT,
                 InstallArguments TEXT NOT NULL,
-                DownloadPath TEXT
+                DownloadPath TEXT,
+                CachedPath TEXT
             );
         ";
 
@@ -44,29 +48,31 @@ namespace Responsible_Program_Manager
             }
         }
 
-        public void AddOrUpdateFileSystemItem(string codeName, string name, string publisher, string installedVersion, string version, string iconPath, string iconUrl, string categories, string installArguments, string downloadPath)
+        public void AddOrUpdateFileSystemItem(string codeName, string name, string publisher, string installedVersion, string version, string iconPath, string iconUrl, string categories, string installArguments, string downloadPath, string cachedPath)
         {
             using (var connection = new SQLiteConnection(_connectionString))
             {
                 connection.Open();
 
                 string query = @"
-            INSERT OR REPLACE INTO FileSystemItems 
-            (Id, CodeName, Name, Publisher, InstalledVersion, Version, IconPath, IconUrl, Categories, InstallArguments, DownloadPath)
-            VALUES (
-                (SELECT Id FROM FileSystemItems WHERE CodeName = @CodeName), -- Используем существующий Id, если запись есть
-                @CodeName, 
-                @Name, 
-                @Publisher, 
-                @InstalledVersion, 
-                @Version, 
-                @IconPath, 
-                @IconUrl, 
-                @Categories, 
-                @InstallArguments, 
-                @DownloadPath
-            );
-        ";
+                    INSERT OR REPLACE INTO FileSystemItems 
+                    (Id, CodeName, Name, Publisher, InstalledVersion, Version, IconPath, IconUrl, Categories, InstallArguments, DownloadPath, CachedPath)
+                    VALUES (
+                        (SELECT Id FROM FileSystemItems WHERE CodeName = @CodeName),
+                        @CodeName, 
+                        @Name, 
+                        @Publisher, 
+                        @InstalledVersion, 
+                        @Version, 
+                        @IconPath, 
+                        @IconUrl, 
+                        @Categories, 
+                        @InstallArguments, 
+                        @DownloadPath,
+                        @CachedPath
+                    );
+                ";
+
 
                 using (var command = new SQLiteCommand(query, connection))
                 {
@@ -80,6 +86,7 @@ namespace Responsible_Program_Manager
                     command.Parameters.AddWithValue("@Categories", categories != null ? string.Join(";", categories) : (object)DBNull.Value);
                     command.Parameters.AddWithValue("@InstallArguments", installArguments);
                     command.Parameters.AddWithValue("@DownloadPath", downloadPath ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@CachedPath", cachedPath ?? (object)DBNull.Value);
 
                     command.ExecuteNonQuery();
                 }
@@ -128,13 +135,14 @@ namespace Responsible_Program_Manager
                                 CodeName = reader["CodeName"].ToString(),
                                 Name = reader["Name"].ToString(),
                                 Publisher = reader["Publisher"]?.ToString(),
-                                InstalledVersion = reader["InstalledVersion"]?.ToString(), // Только для SQLite
+                                InstalledVersion = reader["InstalledVersion"]?.ToString(),
                                 Version = reader["Version"]?.ToString(),
-                                IconPath = reader["IconPath"]?.ToString(), // Путь к кэшированным данным
-                                IconUrl = reader["IconUrl"]?.ToString(), // Новый URL для удалённой базы
-                                Categories = reader["Categories"]?.ToString(), // Преобразуем строку в массив
+                                IconPath = reader["IconPath"]?.ToString(),
+                                IconUrl = reader["IconUrl"]?.ToString(),
+                                Categories = reader["Categories"]?.ToString(),
                                 InstallArguments = reader["InstallArguments"]?.ToString(),
-                                DownloadPath = reader["DownloadPath"]?.ToString()
+                                DownloadPath = reader["DownloadPath"]?.ToString(),
+                                CachedPath = reader["CachedPath"]?.ToString() // Добавлено поле
                             });
                         }
                     }
@@ -184,5 +192,26 @@ namespace Responsible_Program_Manager
             return items;
         }
 
+        public void UpdateCachedPath(string codeName, string cachedPath)
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+
+                string updateQuery = @"
+            UPDATE FileSystemItems
+            SET CachedPath = @CachedPath
+            WHERE CodeName = @CodeName;
+        ";
+
+                using (var command = new SQLiteCommand(updateQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@CachedPath", cachedPath ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@CodeName", codeName);
+
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
     }
 }

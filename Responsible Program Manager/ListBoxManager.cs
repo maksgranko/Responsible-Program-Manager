@@ -38,20 +38,33 @@ namespace Responsible_Program_Manager
                 listBox.Items.Remove(listBox.SelectedItem);
             }
         }
+
+        public IEnumerable<FileSystemItem> GetAllItems()
+        {
+            foreach (var item in listBox.Items)
+            {
+                if (item is FileSystemItem fileSystemItem)
+                {
+                    yield return fileSystemItem;
+                }
+            }
+        }
+
     }
 
     public class FileSystemItem
     {
-        public string CodeName { get; set; }
-        public string Name { get; set; }
-        public string Publisher { get; set; }
-        public string InstalledVersion { get; set; } // Только для SQLite
-        public string Version { get; set; }
-        public string IconPath { get; set; } // Путь к кэшированным данным
-        public string IconUrl { get; set; } // Новый URL для удалённой базы
-        public string Categories { get; set; }
-        public string InstallArguments { get; set; }
-        public string DownloadPath { get; set; }
+            public string CodeName { get; set; }
+            public string Name { get; set; }
+            public string Publisher { get; set; }
+            public string InstalledVersion { get; set; } // Только для SQLite
+            public string Version { get; set; }
+            public string IconPath { get; set; } // Путь к кэшированным данным
+            public string IconUrl { get; set; } // Новый URL для удалённой базы
+            public string Categories { get; set; }
+            public string InstallArguments { get; set; }
+            public string DownloadPath { get; set; }
+            public string CachedPath { get; set; } // Новый путь к кэшированному файлу
 
         public override string ToString()
         {
