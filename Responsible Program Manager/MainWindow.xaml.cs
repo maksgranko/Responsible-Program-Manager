@@ -575,7 +575,7 @@ namespace Responsible_Program_Manager
 
             Dispatcher.Invoke(() =>
             {
-                status_label.Text = "Установка приложения "+ item.Name;
+                status_label.Text = "Установка приложения "+ item.Name + " ...";
             });
             try
             {

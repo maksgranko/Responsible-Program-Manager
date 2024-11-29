@@ -94,7 +94,7 @@
             <Button x:Name="settings_btn" Content="Настройки" Margin="5 0 5 10" Click="settings_btn_Click"/>
             <Button x:Name="about_btn" Content="Разработчики" Margin="5 0 5 10" Click="About_btn_Click"/>
             <Separator Height="23"/>
-            <TextBlock x:Name="status_label" Text="Приложение готово к работе." Height="234" ClipToBounds="True" TextWrapping="WrapWithOverflow" Width="174"/>
+            <TextBlock x:Name="status_label" Text="Приложение готово к работе." Height="234" TextWrapping="WrapWithOverflow" Width="174"/>
         </StackPanel>
         <Grid x:Name="Cachedsoft_grid" Grid.Column="1" Visibility="Hidden">
             <ListBox x:Name="cached_AllApps_ExplorerListBox" Margin="25,48,25,238" MouseDoubleClick="cached_AllApps_ExplorerListBox_MouseDoubleClick">
@@ -171,7 +171,7 @@
 
         </Grid>
         <Grid x:Name="Settings_grid" Grid.Column="1" Visibility="Visible">
-            <CheckBox x:Name="open_cache_folder_cb" Content="После загрузки открывать папку с ПО" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" Padding="4,0,0,0" Width="305" MinWidth="308" MinHeight="20" MaxHeight="20"/>
+            <CheckBox x:Name="open_cache_folder_cb" Content="После загрузки открывать папку с ПО" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" Padding="4,0,0,0" Width="305" MinWidth="308" MinHeight="20" MaxHeight="20" ToolTip="Если включено, постоянно открывает папку с кэшем, если программа была загружена в кэш."/>
 
             <Button x:Name="save_settings_btn" Content="Сохранить настройки" Margin="0,0,23,21" Height="26" VerticalAlignment="Bottom" MinWidth="175" MinHeight="26" HorizontalAlignment="Right" Width="175" Click="save_settings_btn_Click"/>
             <Button x:Name="clear_cache_btn" Content="Очистить кэш загрузок" Margin="21,0,0,21" Height="26" VerticalAlignment="Bottom" MinWidth="175" MinHeight="26" Click="clear_cache_btn_Click" HorizontalAlignment="Left" Width="175"/>
