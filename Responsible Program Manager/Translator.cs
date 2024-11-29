@@ -1,12 +1,26 @@
-﻿namespace Responsible_Program_Manager
+﻿using System.Globalization;
+using System.Resources;
+using System.Threading;
+
+namespace Responsible_Program_Manager
 {
-    internal class Translator
+    public static class Translator
     {
-        public Translator()
+        private static readonly ResourceManager ResourceManager =
+            new ResourceManager("Responsible_Program_Manager.Language", typeof(Translator).Assembly);
+
+        public static CultureInfo CurrentCulture { get; private set; } = CultureInfo.CurrentUICulture;
+
+        public static string Translate(string key)
         {
-            string apply_mode_combobox_0 = "";
-            string apply_mode_combobox_1 = "";
-            string apply_mode_combobox_2 = "";
+                return ResourceManager.GetString(key, CurrentCulture) ?? $"[{key}]";
+        }
+        
+        public static void SetLanguage(string cultureName)
+        {
+            CurrentCulture = new CultureInfo(cultureName);
+            Thread.CurrentThread.CurrentUICulture = CurrentCulture;
+            Thread.CurrentThread.CurrentCulture = CurrentCulture;
         }
     }
 }

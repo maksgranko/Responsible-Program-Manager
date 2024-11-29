@@ -12,7 +12,7 @@
             <ColumnDefinition Width="19*"/>
             <ColumnDefinition Width="61*"/>
         </Grid.ColumnDefinitions>
-        <Grid x:Name="AllSoft_grid" Grid.Column="1" Visibility="Hidden">
+        <Grid x:Name="AllSoft_grid" Grid.Column="1" Visibility="Visible">
             <ListBox x:Name="AllApps_ExplorerListBox" Margin="25,48,25,238" MouseDoubleClick="AllApps_ExplorerListBox_MouseDoubleClick">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
@@ -41,9 +41,9 @@
 
             <Button x:Name="apply_btn" Grid.Column="1" Content="Применить" Margin="0,0,25,10" HorizontalAlignment="Right" Width="119" Height="25" VerticalAlignment="Bottom" Click="ApplyButton_Click"/>
             <ComboBox x:Name="apply_mode_combobox" Grid.Column="1" Margin="25,0,163,10" Height="25" VerticalAlignment="Bottom" SelectedIndex="2">
-                <Label x:Name="button" Content="Только загрузить" />
-                <Label Content="Только установить"/>
-                <Label Content="Загрузить и установить"/>
+                <Label x:Name="OnlyDownload_label" Content="Только загрузить"/>
+                <Label x:Name="OnlyInstall_label" Content="Только установить"/>
+                <Label x:Name="DownloadAndInstall_label" Content="Загрузить и установить"/>
             </ComboBox>
             <ListBox x:Name="Selected_ExplorerListBox" Margin="25,0,25,53" Height="148" VerticalAlignment="Bottom" MouseDoubleClick="Selected_ExplorerListBox_MouseDoubleClick">
                 <ListBox.ItemTemplate>
@@ -80,11 +80,12 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <Label x:Name="selected_apps_label" Content="Выбранные приложения:" Margin="25,0,25,203" FontSize="16" MinHeight="32" MinWidth="211" Height="32" VerticalAlignment="Bottom"/>
-            <Label x:Name="all_apps_label" Content="Приложения:" Margin="25,11,395,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" MinWidth="139"/>
+            <Label x:Name="selected_apps_label" Content="Выбранные приложения:" Margin="25,0,279,203" FontSize="16" MinHeight="32" MinWidth="211" Height="32" VerticalAlignment="Bottom"/>
+            <Label x:Name="all_apps_label" Content="Приложения:" Margin="25,11,392,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" MinWidth="139"/>
             <ComboBox x:Name="categories_cb" Margin="0,16,25,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" Width="120" SelectionChanged="CategoriesComboBox_SelectionChanged"/>
-            <Label x:Name="categories_label" Content="Категории:" Margin="322,11,161,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" HorizontalContentAlignment="Right" MinWidth="91"/>
-            <TextBox x:Name="all_search_textbox" Margin="0,16,293,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="22" HorizontalAlignment="Right" Width="108" ToolTip="Поиск" Tag="Поиск" Text="Поиск" MouseEnter="all_search_textbox_MouseEnter" MouseLeave="all_search_textbox_MouseLeave" TextChanged="all_search_textbox_TextChanged"/>
+            <Label x:Name="categories_label" Content="Категории:" Margin="322,11,150,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" HorizontalContentAlignment="Right" MinWidth="91"/>
+            <TextBox x:Name="all_search_textbox" Margin="223,16,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="22" ToolTip="Поиск" Tag="Поиск" Text="Поиск" MouseEnter="all_search_textbox_MouseEnter" MouseLeave="all_search_textbox_MouseLeave" TextChanged="all_search_textbox_TextChanged" HorizontalAlignment="Left" Width="108"/>
+            <Button x:Name="clear_selected_list_btn" Content="Очистить список выбранных" Margin="0,0,25,205" HorizontalAlignment="Right" Width="170" Height="28" VerticalAlignment="Bottom" MinWidth="165" MinHeight="28" Click="clear_selected_list_btn_Click" />
         </Grid>
         <StackPanel>
             <Separator Height="23"/>
@@ -93,8 +94,12 @@
             <Separator Height="23"/>
             <Button x:Name="settings_btn" Content="Настройки" Margin="5 0 5 10" Click="settings_btn_Click"/>
             <Button x:Name="about_btn" Content="Разработчики" Margin="5 0 5 10" Click="About_btn_Click"/>
-            <Separator Height="23"/>
-            <TextBlock x:Name="status_label" Text="Приложение готово к работе." Height="234" TextWrapping="WrapWithOverflow" Width="174"/>
+            <ComboBox x:Name="LanguageComboBox" SelectionChanged="LanguageComboBox_SelectionChanged" Margin="5 0 5 10" Height="28">
+                <ComboBoxItem Content="Русский/Russian" Tag="ru" />
+                <ComboBoxItem Content="English/Английский" Tag="en" />
+            </ComboBox>
+            <Separator Height="16"/>
+            <TextBlock x:Name="status_label" Text="Приложение готово к работе." Height="208" TextWrapping="WrapWithOverflow" Width="174"/>
         </StackPanel>
         <Grid x:Name="Cachedsoft_grid" Grid.Column="1" Visibility="Hidden">
             <ListBox x:Name="cached_AllApps_ExplorerListBox" Margin="25,48,25,238" MouseDoubleClick="cached_AllApps_ExplorerListBox_MouseDoubleClick">
@@ -170,7 +175,7 @@
             <Grid/>
 
         </Grid>
-        <Grid x:Name="Settings_grid" Grid.Column="1" Visibility="Visible">
+        <Grid x:Name="Settings_grid" Grid.Column="1" Visibility="Hidden">
             <CheckBox x:Name="open_cache_folder_cb" Content="После загрузки открывать папку с ПО" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" Padding="4,0,0,0" Width="305" MinWidth="308" MinHeight="20" MaxHeight="20" ToolTip="Если включено, постоянно открывает папку с кэшем, если программа была загружена в кэш."/>
 
             <Button x:Name="save_settings_btn" Content="Сохранить настройки" Margin="0,0,23,21" Height="26" VerticalAlignment="Bottom" MinWidth="175" MinHeight="26" HorizontalAlignment="Right" Width="175" Click="save_settings_btn_Click"/>

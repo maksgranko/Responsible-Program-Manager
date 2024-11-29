@@ -27,7 +27,7 @@ namespace Responsible_Program_Manager
                 string createTableQuery = @"
             CREATE TABLE IF NOT EXISTS FileSystemItems (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                CodeName TEXT NOT NULL UNIQUE, -- Уникальность для CodeName
+                CodeName TEXT NOT NULL UNIQUE,
                 Name TEXT NOT NULL,
                 Publisher TEXT,
                 InstalledVersion TEXT,
@@ -66,7 +66,6 @@ namespace Responsible_Program_Manager
             {
                 connection.Open();
 
-                // Обновленный запрос
                 string query = @"
         INSERT INTO FileSystemItems 
         (CodeName, Name, Publisher, InstalledVersion, Version, IconUrl, Categories, InstallArguments, DownloadPath, MD5_hash)
@@ -211,7 +210,7 @@ namespace Responsible_Program_Manager
                                 Categories = reader["Categories"]?.ToString(),
                                 InstallArguments = reader["InstallArguments"]?.ToString(),
                                 DownloadPath = reader["DownloadPath"]?.ToString(),
-                                CachedPath = reader["CachedPath"]?.ToString(), // Добавлено поле
+                                CachedPath = reader["CachedPath"]?.ToString(),
                                 MD5_hash = reader["MD5_hash"]?.ToString()
                             });
                         }
@@ -246,11 +245,11 @@ namespace Responsible_Program_Manager
                                 CodeName = reader["CodeName"].ToString(),
                                 Name = reader["Name"].ToString(),
                                 Publisher = reader["Publisher"]?.ToString(),
-                                InstalledVersion = reader["InstalledVersion"]?.ToString(), // Только для SQLite
+                                InstalledVersion = reader["InstalledVersion"]?.ToString(),
                                 Version = reader["Version"]?.ToString(),
-                                IconPath = reader["IconPath"]?.ToString(), // Путь к кэшированным данным
-                                IconUrl = reader["IconUrl"]?.ToString(), // Новый URL для удалённой базы
-                                Categories = reader["Categories"]?.ToString(), // Преобразуем строку в массив
+                                IconPath = reader["IconPath"]?.ToString(),
+                                IconUrl = reader["IconUrl"]?.ToString(),
+                                Categories = reader["Categories"]?.ToString(),
                                 InstallArguments = reader["InstallArguments"]?.ToString(),
                                 DownloadPath = reader["DownloadPath"]?.ToString(),
                                 CachedPath = reader["CachedPath"]?.ToString(),

@@ -1,0 +1,345 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Status_LoadDatas" xml:space="preserve">
+    <value>Загрузка данных</value>
+  </data>
+  <data name="Status_LoadCachedDatas" xml:space="preserve">
+    <value>Загрузка кэшированных данных</value>
+  </data>
+  <data name="Error_WhenUpdateDB" xml:space="preserve">
+    <value>Ошибка при обновлении базы данных</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="Error_WhenLoadDataFromDB" xml:space="preserve">
+    <value>Ошибка при загрузке данных из базы данных</value>
+  </data>
+  <data name="UI_AllCategories" xml:space="preserve">
+    <value>Все категории</value>
+  </data>
+  <data name="UI_DownloadSource" xml:space="preserve">
+    <value>Источник загрузки</value>
+  </data>
+  <data name="UI_Source" xml:space="preserve">
+    <value>Источник</value>
+  </data>
+  <data name="dbg_err_WontBeEmpty" xml:space="preserve">
+    <value>не может быть пустым</value>
+  </data>
+  <data name="dbg_err_DontContainsValidDatas" xml:space="preserve">
+    <value>не содержит валидных данных</value>
+  </data>
+  <data name="dbg_err_FilepatternDontContainsInFolder_part1" xml:space="preserve">
+    <value>Файл, соответствующий шаблону</value>
+  </data>
+  <data name="dbg_err_FilepatternDontContainsInFolder_part2" xml:space="preserve">
+    <value>не найден в папке</value>
+  </data>
+  <data name="UI_LoadingApps" xml:space="preserve">
+    <value>Загрузка приложений</value>
+  </data>
+  <data name="Error_WhenLoadingApp" xml:space="preserve">
+    <value>Ошибка при загрузке приложения</value>
+  </data>
+  <data name="UI_InstallingApps" xml:space="preserve">
+    <value>Установка приложений</value>
+  </data>
+  <data name="Error_NotSelectedAnyApp" xml:space="preserve">
+    <value>Не выбрано ни одно приложение</value>
+  </data>
+  <data name="Error_AnyAppsWontInstalled" xml:space="preserve">
+    <value>Ни одного приложения не было установлено</value>
+  </data>
+  <data name="UI_OneOfSelectedAppsWontBeInstalled" xml:space="preserve">
+    <value>Некоторые приложения не были установлены</value>
+  </data>
+  <data name="UI_OperationCompleted" xml:space="preserve">
+    <value>Операция выполнена</value>
+  </data>
+  <data name="Error_FolderWontBeOpened" xml:space="preserve">
+    <value>Не удалось открыть папку</value>
+  </data>
+  <data name="UI_Downloading" xml:space="preserve">
+    <value>Загрузка</value>
+  </data>
+  <data name="UI_KB" xml:space="preserve">
+    <value>КБ</value>
+  </data>
+  <data name="dbg_err_BadMD5Hash_part1" xml:space="preserve">
+    <value>MD5 хэш файла</value>
+  </data>
+  <data name="dbg_err_BadMD5Hash" xml:space="preserve">
+    <value>не совпадает с ожидаемым значением</value>
+  </data>
+  <data name="dbg_err_FileDownloadingStoppedByTimeout_part1" xml:space="preserve">
+    <value>Загрузка файла </value>
+  </data>
+  <data name="dbg_err_FileDownloadingStoppedByTimeout_part2" xml:space="preserve">
+    <value>была прервана из-за таймаута</value>
+  </data>
+  <data name="Error_WhenDownloadingFile" xml:space="preserve">
+    <value>Ошибка при загрузке файла</value>
+  </data>
+  <data name="UI_InstallingApps_1" xml:space="preserve">
+    <value>Установка приложения</value>
+  </data>
+  <data name="Error_CachedFileNotFound" xml:space="preserve">
+    <value>Кэшированный файл не найден</value>
+  </data>
+  <data name="Application" xml:space="preserve">
+    <value>Приложение</value>
+  </data>
+  <data name="UI_AppInstalledSuccessfully" xml:space="preserve">
+    <value>успешно установлено</value>
+  </data>
+  <data name="Error_AppEndSetupByError" xml:space="preserve">
+    <value>завершило установку с ошибкой (код</value>
+  </data>
+  <data name="UI_AppWannaManualSetup" xml:space="preserve">
+    <value>требует ручной установки, поскольку это не установщик</value>
+  </data>
+  <data name="Error_WhenSetupApp" xml:space="preserve">
+    <value>Ошибка при установке приложения</value>
+  </data>
+  <data name="Error_WhenSetupIcon" xml:space="preserve">
+    <value>Ошибка при работе с иконкой</value>
+  </data>
+  <data name="UI_AboutUsLong" xml:space="preserve">
+    <value>Программист, тестировщик, разработчик: Гранько Максим
+
+Разработано специально для областной Выставки научно-технического творчества "Техника молодежи".
+2024</value>
+  </data>
+  <data name="UI_About" xml:space="preserve">
+    <value>О разработчиках</value>
+  </data>
+  <data name="Error_WhenParseCategories" xml:space="preserve">
+    <value>Ошибка при заполнении категорий</value>
+  </data>
+  <data name="Error_NoSelectedApps" xml:space="preserve">
+    <value>Не выбрано ни одного приложения для установки</value>
+  </data>
+  <data name="UI_AllSelectedAppsInstalledSuccessfully" xml:space="preserve">
+    <value>Все выбранные приложения успешно установлены</value>
+  </data>
+  <data name="UI_Search" xml:space="preserve">
+    <value>Поиск</value>
+  </data>
+  <data name="UI_Search_Long" xml:space="preserve">
+    <value>Поиск. Введите название приложения или разработчика ПО</value>
+  </data>
+  <data name="UI_Search_lower" xml:space="preserve">
+    <value>поиск</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Внимание</value>
+  </data>
+  <data name="UI_ClearCacheWarning" xml:space="preserve">
+    <value>Нажатие кнопки "Да" приведёт к чистке кэша картинок и программ. Вы уверены?</value>
+  </data>
+  <data name="Error_CacheClearFailed" xml:space="preserve">
+    <value>Ошибка очистки кэша</value>
+  </data>
+  <data name="Error_IconCacheClearFailed" xml:space="preserve">
+    <value>Ошибка очистки кэша иконок</value>
+  </data>
+  <data name="UI_SettingsSaved" xml:space="preserve">
+    <value>Настройки сохранены</value>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>Сохранено</value>
+  </data>
+  <data name="UI_OpenCacheFolderAfterLoading" xml:space="preserve">
+    <value>Открывать папку с ПО после загрузки</value>
+  </data>
+  <data name="UI_OpenCacheFolder" xml:space="preserve">
+    <value>Открыть кэш-папку</value>
+  </data>
+  <data name="UI_ClearDownloadCache" xml:space="preserve">
+    <value>Очистить кэш загрузок</value>
+  </data>
+  <data name="UI_SaveSettings" xml:space="preserve">
+    <value>Сохранить настройки</value>
+  </data>
+  <data name="UI_GetPrograms" xml:space="preserve">
+    <value>Найти программы</value>
+  </data>
+  <data name="UI_CachedPrograms" xml:space="preserve">
+    <value>Загруженное ПО</value>
+  </data>
+  <data name="UI_Settings" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="UI_AboutUs" xml:space="preserve">
+    <value>Разработчики</value>
+  </data>
+  <data name="UI_ApplicationReady" xml:space="preserve">
+    <value>Приложение готово к работе</value>
+  </data>
+  <data name="UI_DisableMD5Validating" xml:space="preserve">
+    <value>Отключить проверку файлов с помощью MD5 (!)</value>
+  </data>
+  <data name="UI_ChangeLanguage" xml:space="preserve">
+    <value>Сменить язык</value>
+  </data>
+  <data name="UI_ChangeLanguageQuestion" xml:space="preserve">
+    <value>Вы точно желаете сменить язык? Это приведёт к перезапуску программы.</value>
+  </data>
+  <data name="UI_Done" xml:space="preserve">
+    <value>Успех</value>
+  </data>
+  <data name="UI_Complete_lower" xml:space="preserve">
+    <value>завершена</value>
+  </data>
+  <data name="UI_TimeoutLimitReached_Lower" xml:space="preserve">
+    <value>превышает таймаут</value>
+  </data>
+  <data name="UI_NotCompleted_lower" xml:space="preserve">
+    <value>не удалась</value>
+  </data>
+  <data name="Applications" xml:space="preserve">
+    <value>Приложения</value>
+  </data>
+  <data name="UI_Apply" xml:space="preserve">
+    <value>Применить</value>
+  </data>
+  <data name="UI_Categories" xml:space="preserve">
+    <value>Категории</value>
+  </data>
+  <data name="UI_DownloadAndInstall" xml:space="preserve">
+    <value>Загрузить и установить</value>
+  </data>
+  <data name="UI_OnlyInstall" xml:space="preserve">
+    <value>Только установить</value>
+  </data>
+  <data name="UI_OnlyDownload" xml:space="preserve">
+    <value>Только загрузить</value>
+  </data>
+  <data name="UI_SelectedPrograms" xml:space="preserve">
+    <value>Выбранные программы</value>
+  </data>
+  <data name="UI_YouSureClearSelected" xml:space="preserve">
+    <value>Вы уверены, что желаете очистить список выбранного ПО?</value>
+  </data>
+  <data name="UI_ClearSelectedList" xml:space="preserve">
+    <value>Очистить список выбранных</value>
+  </data>
+</root>

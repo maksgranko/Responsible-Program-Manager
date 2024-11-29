@@ -8,5 +8,8 @@
     <Setting Name="md5Verify" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="language" Type="System.String" Scope="User">
+      <Value Profile="(Default)">ru</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -1,57 +1,132 @@
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
-using Newtonsoft.Json;
+using System.Resources;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.IO;
-using System;
-using System.Threading;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Drawing;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using Newtonsoft.Json.Linq;
 
 namespace Responsible_Program_Manager
 {
     public partial class MainWindow : Window
     {
         private List<FileSystemItem> AllFileSystemItems = new List<FileSystemItem>();
-        private List<FileSystemItem> cached_AllFileSystemItems = new List<FileSystemItem>(); 
+        private List<FileSystemItem> cached_AllFileSystemItems = new List<FileSystemItem>();
         public ListBoxManager AllApps_lbm = null;
         public ListBoxManager SelectedApps_lbm = null;
         public ListBoxManager cached_AllApps_lbm = null;
         public ListBoxManager cached_SelectedApps_lbm = null;
         public DatabaseManager dbm = new DatabaseManager("apps.db");
-        public bool ready = true;
+
+        public CultureInfo currentCulture = null;
+        public ResourceManager rm = null;
+
+        bool initialize = true;
 
         public MainWindow()
         {
+            initialize = true;
+            if (Properties.Settings.Default.language != "en")
+            {
+                Translator.SetLanguage("ru");
+            }
+            else
+            {
+                Translator.SetLanguage("en");
+            }
             UpdateDatabase();
             //AllFileSystemItems = dbm.GetAllFileSystemItems();
             InitializeComponent();
             AllApps_lbm = new ListBoxManager(AllApps_ExplorerListBox);
             SelectedApps_lbm = new ListBoxManager(Selected_ExplorerListBox);
-            cached_AllApps_lbm = new ListBoxManager(cached_AllApps_ExplorerListBox); 
+            cached_AllApps_lbm = new ListBoxManager(cached_AllApps_ExplorerListBox);
             cached_SelectedApps_lbm = new ListBoxManager(cached_Selected_ExplorerListBox);
+            ReloadUI();
 
             Dispatcher.Invoke(() =>
             {
-                status_label.Text = "Загрузка данных...";
+                status_label.Text = $"{Translator.Translate("Status_LoadDatas")}...";
             });
             ReloadAppsFromDB();
             Dispatcher.Invoke(() =>
             {
-                status_label.Text = "Загрузка кэшированных данных...";
+                status_label.Text = $"{Translator.Translate("Status_LoadCachedDatas")}...";
             });
             ReloadCachedAppsFromDB();
             Dispatcher.Invoke(() =>
             {
                 status_label.Text = "";
             });
+            initialize = false;
+        }
+
+        private void ReloadUI()
+        {
+            foreach (ComboBoxItem i in LanguageComboBox.Items)
+            {
+                if ((string)i.Tag == Properties.Settings.Default.language)
+                {
+                    LanguageComboBox.SelectedValue = i;
+                    break;
+                }
+            }
+
+            apply_btn.Content = Translator.Translate("UI_Apply");
+            cached_selected_apps_label.Content = selected_apps_label.Content = Translator.Translate("UI_SelectedPrograms") + ":";
+            cached_all_apps_label.Content = all_apps_label.Content = Translator.Translate("Applications") + ":";
+            cached_categories_label.Content = categories_label.Content = Translator.Translate("UI_Categories") + ":";
+            all_soft_btn.Content = Translator.Translate("UI_GetPrograms");
+            cached_soft_btn.Content = Translator.Translate("UI_CachedPrograms");
+            settings_btn.Content = Translator.Translate("UI_Settings");
+            about_btn.Content = Translator.Translate("UI_AboutUs");
+            status_label.Text = Translator.Translate("UI_AppIsReady");
+            cached_apply_btn.Content = Translator.Translate("UI_Apply");
+            open_cache_folder_cb.Content = Translator.Translate("UI_OpenCacheFolderAfterLoading");
+            save_settings_btn.Content = Translator.Translate("UI_SaveSettings");
+            clear_cache_btn.Content = Translator.Translate("UI_ClearDownloadCache");
+            open_cache_path_btn.Content = Translator.Translate("UI_OpenCacheFolder");
+            md5_verify_cb.Content = Translator.Translate("UI_DisableMD5Validating");
+            DownloadAndInstall_label.Content = Translator.Translate("UI_DownloadAndInstall");
+            OnlyInstall_label.Content = Translator.Translate("UI_OnlyInstall");
+            OnlyDownload_label.Content = Translator.Translate("UI_OnlyDownload");
+            all_search_textbox.Text = Translator.Translate("UI_Search");
+            clear_selected_list_btn.Content = Translator.Translate("UI_ClearSelectedList");
+
+        }
+
+        private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (initialize) return;
+            if (MessageBox.Show($"{Translator.Translate("UI_ChangeLanguageQuestion")}", $"{Translator.Translate("UI_ChangeLanguage")}", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                string selectedLanguage = ((ComboBoxItem)e.AddedItems[0]).Tag.ToString();
+                Translator.SetLanguage(selectedLanguage);
+                Properties.Settings.Default.language = selectedLanguage;
+                Properties.Settings.Default.Save();
+                Application.Current.MainWindow = new MainWindow();
+                Close();
+                new MainWindow().ShowDialog();
+                Environment.Exit(0);
+            }
+
+            initialize = true;
+            foreach (ComboBoxItem i in LanguageComboBox.Items)
+            {
+                if ((string)i.Tag == Properties.Settings.Default.language)
+                {
+                    LanguageComboBox.SelectedValue = i;
+                    break;
+                }
+            }
+            initialize = false;
         }
 
         private void UpdateDatabase()
@@ -87,7 +162,7 @@ namespace Responsible_Program_Manager
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show($"Ошибка при обновлении базы данных: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"{Translator.Translate("Error_WhenUpdateDB")}: {ex.Message}", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -118,25 +193,23 @@ namespace Responsible_Program_Manager
 
                 foreach (var item in AllFileSystemItems)
                 {
-                    EnsureIconCached(item); // Проверяем и загружаем иконки
+                    EnsureIconCached(item);
                 }
 
                 AllApps_lbm.Clear();
                 SelectedApps_lbm.Clear();
                 AllApps_lbm.AddItems(AllFileSystemItems);
 
-                // Обновляем категории в ComboBox
                 PopulateCategoriesComboBox();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при загрузке данных из базы: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"{Translator.Translate("Error_WhenLoadDataFromDB")}: {ex.Message}", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void PopulateCategoriesComboBox()
         {
-            // Получаем все категории из AllFileSystemItems
             var uniqueCategories = new HashSet<string>();
 
             foreach (var item in AllFileSystemItems)
@@ -151,16 +224,14 @@ namespace Responsible_Program_Manager
                 }
             }
 
-            // Заполняем ComboBox уникальными категориями
             categories_cb.Items.Clear();
             foreach (var category in uniqueCategories)
             {
                 categories_cb.Items.Add(category);
             }
 
-            // Добавляем опцию "Все категории"
-            categories_cb.Items.Insert(0, "Все категории");
-            categories_cb.SelectedIndex = 0; // Выбираем "Все категории" по умолчанию
+            categories_cb.Items.Insert(0, Translator.Translate("UI_AllCategories"));
+            categories_cb.SelectedIndex = 0;
         }
         private void AllApps_ExplorerListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
@@ -178,7 +249,6 @@ namespace Responsible_Program_Manager
         {
             if (Selected_ExplorerListBox.SelectedItem is FileSystemItem selectedItem)
             {
-                // Проверяем, существует ли уже элемент в AllApps_lbm
                 if (!AllApps_lbm.GetAllItems().Any(item => item.CodeName == selectedItem.CodeName))
                 {
                     SelectedApps_lbm.RemoveSelectedItem();
@@ -199,36 +269,33 @@ namespace Responsible_Program_Manager
         {
             if (AllApps_ExplorerListBox.SelectedItem is FileSystemItem selectedItem)
             {
-                MessageBox.Show($"Источник загрузки: {selectedItem.DownloadPath}", "Источник", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show($"{Translator.Translate("UI_DownloadSource")}: {selectedItem.DownloadPath}", Translator.Translate("UI_AllCategories"), MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
-        
+
         private string ProcessInstallArguments(string installArguments, string cacheDirectory)
         {
             if (string.IsNullOrWhiteSpace(installArguments))
-                throw new ArgumentException("InstallArguments не может быть пустым");
+                throw new ArgumentException($"InstallArguments {Translator.Translate("dbg_err_WontBeEmpty")}");
 
-            // Разбиваем строку аргументов, убирая пустые элементы вручную
             var parts = installArguments
                 .Split(';')
                 .Where(part => !string.IsNullOrWhiteSpace(part)) // Убираем пустые строки
                 .ToArray();
 
             if (parts.Length == 0)
-                throw new ArgumentException("InstallArguments не содержит валидных данных");
+                throw new ArgumentException($"InstallArguments {Translator.Translate("dbg_err_DontContainsValidDatas")}");
 
-            // Первая часть — это шаблон имени файла
             string filePattern = parts[0];
             string installFilePath = Directory
                 .GetFiles(cacheDirectory, filePattern)
                 .FirstOrDefault();
 
             if (installFilePath == null)
-                throw new FileNotFoundException($"Файл, соответствующий шаблону '{filePattern}', не найден в папке {cacheDirectory}");
+                throw new FileNotFoundException($"{Translator.Translate("dbg_err_FilepatternDontContainsInFolder_part1")} '{filePattern}', {Translator.Translate("dbg_err_FilepatternDontContainsInFolder_part2")} {cacheDirectory}");
 
-            // Оставшиеся части — это дополнительные аргументы
             string arguments = parts.Length > 1
-                ? string.Join(" ", parts.Skip(1)) // Объединяем оставшиеся аргументы через пробел
+                ? string.Join(" ", parts.Skip(1))
                 : string.Empty;
 
             return $"\"{installFilePath}\" {arguments}";
@@ -242,9 +309,8 @@ namespace Responsible_Program_Manager
 
                 var selectedItems = SelectedApps_lbm.GetAllItems().Select(item => item.CodeName).ToHashSet();
 
-                if (selectedCategory == "Все категории")
+                if (selectedCategory == Translator.Translate("UI_AllCategories"))
                 {
-                    // Исключаем уже выбранные элементы
                     var filteredItems = AllFileSystemItems
                         .Where(item => !selectedItems.Contains(item.CodeName))
                         .ToList();
@@ -270,116 +336,124 @@ namespace Responsible_Program_Manager
         private async void ApplyButton_action()
         {
             string cacheDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache");
-            bool shouldOpenCache = false; // Флаг, указывающий, нужно ли открывать папку
-            var successfullyInstalledItems = new List<FileSystemItem>(); // Список успешно установленных элементов
+            bool shouldOpenCache = false;
+            var successfullyInstalledItems = new List<FileSystemItem>();
 
             OnWaiting();
 
             Dispatcher.Invoke(() =>
             {
-                status_label.Text = "Загрузка приложений...";
+                status_label.Text = $"{Translator.Translate("UI_LoadingApps")}...";
             });
-            // Сначала загружаем все файлы
             foreach (var item in SelectedApps_lbm.GetAllItems())
             {
                 try
                 {
-                    // Проверка наличия файла в кэше
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        status_label.Text = $"{Translator.Translate("UI_Downloading")} {item.Name}";
+                    });
                     if (string.IsNullOrWhiteSpace(item.CachedPath) || !File.Exists(item.CachedPath))
                     {
-                        // Если файл не в кэше, загружаем его
                         await Task.Run(() => CacheFile(item));
                     }
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        status_label.Text = $"{Translator.Translate("UI_Downloading")} {item.Name} {Translator.Translate("UI_Complete_lower")}";
+                    });
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка при загрузке приложения '{item.Name}': {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"{Translator.Translate("Error_WhenLoadingApp")} '{item.Name}': {ex.Message}", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
 
             Dispatcher.Invoke(() =>
             {
-                status_label.Text = "Установка приложений...";
+                status_label.Text = $"{Translator.Translate("UI_InstallingApps")}...";
             });
-            // Затем выполняем действия (установка/удаление кэша)
             foreach (var item in SelectedApps_lbm.GetAllItems())
             {
                 switch (apply_mode_combobox.SelectedIndex)
                 {
-                    case 1: // Только установить
-                    case 2: // Загрузить и установить
-                            // Устанавливаем файл
+                    case 1:
+                    case 2:
                         if (await Task.Run(() => InstallFile(item)))
                         {
                             successfullyInstalledItems.Add(item);
                         }
 
-                        // Если только устанавливаем, проверяем, если файл нет в кэше - удаляем кэш
                         if (apply_mode_combobox.SelectedIndex == 1 && !string.IsNullOrWhiteSpace(item.CachedPath) && !File.Exists(item.CachedPath))
                         {
                             await Task.Run(() => DeleteCachedFile(item));
                         }
                         if (apply_mode_combobox.SelectedIndex == 2)
                         {
-                            shouldOpenCache = true; // Отмечаем, что нужно открыть папку после загрузки
+                            shouldOpenCache = true;
                         }
                         break;
 
-                    case 0: // Только загрузить
-                        shouldOpenCache = true; // Если только загружаем, тоже отмечаем
+                    case 0:
+                        shouldOpenCache = true;
                         break;
                 }
             }
 
             OffWaiting();
 
-            // Открываем папку Cache, если это необходимо
             if (shouldOpenCache && Properties.Settings.Default.openCacheEveryDownload)
             {
                 OpenCacheFolder(cacheDirectory);
             }
 
-            // Сообщаем пользователю о результате операции
-            if(Selected_ExplorerListBox.Items.Count == 0)
+            if (Selected_ExplorerListBox.Items.Count == 0)
             {
                 Dispatcher.Invoke(() =>
                 {
-                    status_label.Text = "Ошибка: Не выбрано ни одно приложение.";
+                    status_label.Text = Translator.Translate("Error_NoSelectedApps");
                 });
-                MessageBox.Show("Не выбрано ни одно приложение.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-            if (successfullyInstalledItems.Count == 0)
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    status_label.Text = "Ошибка: Ни одного приложения не было установлено.";
-                });
-                MessageBox.Show("Ни одного приложения не было установлено.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(Translator.Translate("Error_NoSelectedApps"), Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             if (apply_mode_combobox.SelectedIndex == 1 || apply_mode_combobox.SelectedIndex == 2)
             {
-                if ((SelectedApps_lbm.GetAllItems().Count() == successfullyInstalledItems.Count) && successfullyInstalledItems.Count != 0)
+
+                if (successfullyInstalledItems.Count == 0)
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        status_label.Text = "Все выбранные приложения установлены.";
+                        status_label.Text = Translator.Translate("Error_AnyAppsWontInstalled");
                     });
-                    MessageBox.Show("Все выбранные приложения успешно установлены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(Translator.Translate("Error_AnyAppsWontInstalled"), Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                else if ((SelectedApps_lbm.GetAllItems().Count() == successfullyInstalledItems.Count) && successfullyInstalledItems.Count != 0)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        status_label.Text = $"{Translator.Translate("UI_AllSelectedAppsInstalledSuccessfully")}.";
+                    });
+                    MessageBox.Show($"{Translator.Translate("UI_AllSelectedAppsInstalledSuccessfully")}!", Translator.Translate("UI_Done"), MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        status_label.Text = "Некоторые приложения не были установлены.";
+                        status_label.Text = $"{Translator.Translate("UI_OneOfSelectedAppsWontBeInstalled")}.";
                     });
-                    MessageBox.Show("Некоторые приложения не были установлены.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show($"{Translator.Translate("UI_OneOfSelectedAppsWontBeInstalled")}.", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
             else
             {
-                MessageBox.Show("Операция выполнена!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                Dispatcher.Invoke(() =>
+                {
+                    status_label.Text = $"{Translator.Translate("UI_OperationCompleted")}";
+                });
+                MessageBox.Show($"{Translator.Translate("UI_OperationCompleted")}!", Translator.Translate("UI_Done"), MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -420,14 +494,14 @@ namespace Responsible_Program_Manager
             {
                 if (!Directory.Exists(cacheDirectory))
                 {
-                    Directory.CreateDirectory(cacheDirectory); // Создаём папку, если её нет
+                    Directory.CreateDirectory(cacheDirectory);
                 }
 
-                System.Diagnostics.Process.Start("explorer.exe", cacheDirectory); // Открываем папку
+                System.Diagnostics.Process.Start("explorer.exe", cacheDirectory);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Не удалось открыть папку Cache: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"{Translator.Translate("Error_FolderWontBeOpened")} Cache: {ex.Message}", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -436,7 +510,6 @@ namespace Responsible_Program_Manager
         {
             try
             {
-                // Убедимся, что папка Cache существует
                 string cacheDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache");
                 if (!Directory.Exists(cacheDirectory))
                 {
@@ -447,39 +520,31 @@ namespace Responsible_Program_Manager
 
                 using (var client = new HttpClient())
                 {
-                    // Устанавливаем таймаут для загрузки
                     client.Timeout = TimeSpan.FromSeconds(3600);
 
-                    // Создаём запрос на загрузку
                     using (var response = client.GetAsync(item.DownloadPath, HttpCompletionOption.ResponseHeadersRead).Result)
                     {
                         response.EnsureSuccessStatusCode();
 
-                        // Определяем имя файла
                         var contentDisposition = response.Content.Headers.ContentDisposition;
                         if (contentDisposition != null && !string.IsNullOrWhiteSpace(contentDisposition.FileName))
                         {
-                            // Извлекаем имя файла из заголовка Content-Disposition
-                            cachePath = Path.Combine(cacheDirectory, contentDisposition.FileName.Trim('"'));
+                            cachePath = Path.Combine(cacheDirectory, contentDisposition.FileNameStar.Trim('"'));
                         }
                         else
                         {
-                            // Извлекаем имя файла из URL или используем CodeName
                             string fileName = Path.GetFileName(new Uri(item.DownloadPath).AbsolutePath);
                             if (string.IsNullOrWhiteSpace(fileName))
                             {
-                                // Если в URL нет имени файла, используем CodeName с .exe
                                 fileName = $"{item.CodeName}.exe";
                             }
 
                             cachePath = Path.Combine(cacheDirectory, fileName);
                         }
 
-                        // Получаем размер файла
                         var totalBytes = response.Content.Headers.ContentLength ?? -1L;
                         var canReportProgress = totalBytes != -1;
 
-                        // Открываем поток для записи
                         using (var stream = response.Content.ReadAsStreamAsync().Result)
                         using (var fileStream = new FileStream(cachePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
                         {
@@ -487,26 +552,24 @@ namespace Responsible_Program_Manager
                             long totalRead = 0;
                             int bytesRead;
 
-                            // Читаем и записываем данные
                             while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
                             {
                                 fileStream.Write(buffer, 0, bytesRead);
                                 totalRead += bytesRead;
 
-                                // Обновляем статус загрузки в UI-потоке
                                 if (canReportProgress)
                                 {
                                     int progress = (int)((totalRead * 100L) / totalBytes);
                                     Dispatcher.Invoke(() =>
                                     {
-                                        status_label.Text = $"Загрузка {item.Name} : {progress}%";
+                                        status_label.Text = $"{Translator.Translate("UI_Downloading")} {item.Name} : {progress}%";
                                     });
                                 }
                                 else
                                 {
                                     Dispatcher.Invoke(() =>
                                     {
-                                        status_label.Text = $"Загрузка {item.Name} : {totalRead / 1024} KB";
+                                        status_label.Text = $"{Translator.Translate("UI_Downloading")} {item.Name} : {totalRead / 1024} {Translator.Translate("UI_KB")}";
                                     });
                                 }
                             }
@@ -521,44 +584,39 @@ namespace Responsible_Program_Manager
                         string calculatedMD5 = CalculateMD5(cachePath);
                         if (calculatedMD5 != item.MD5_hash)
                         {
-                            // Если хеши не совпадают, удаляем файл и выбрасываем исключение
                             File.Delete(cachePath);
-                            throw new Exception($"MD5 хеш файла {item.Name} не совпадает с ожидаемым значением.");
+                            throw new Exception($"{Translator.Translate("dbg_err_BadMD5Hash_part1")} {item.Name} {Translator.Translate("dbg_err_BadMD5Hash")}.");
                         }
                     }
                 }
 
                 item.CachedPath = cachePath;
 
-                // Обновляем путь в базе данных
                 dbm.UpdateCachedPath(item.CodeName, cachePath);
 
-                // Сообщение об успешной загрузке
                 Dispatcher.Invoke(() =>
                 {
-                    status_label.Text = $"Загрузка {item.Name} завершена!";
+                    status_label.Text = $"{Translator.Translate("UI_Downloading")} {item.Name} {Translator.Translate("UI_Complete_lower")}!";
                 });
             }
             catch (TaskCanceledException)
             {
                 Dispatcher.Invoke(() =>
                 {
-                    status_label.Text = $"Ошибка: загрузка {item.Name} превышает таймаут!";
+                    status_label.Text = $"{Translator.Translate("UI_Downloading")} {item.Name} {Translator.Translate("UI_TimeoutLimitReached_Lower")}!";
                 });
-                MessageBox.Show($"Загрузка файла {item.Name} была прервана из-за таймаута.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"{Translator.Translate("dbg_err_FileDownloadingStoppedByTimeout_part1")} {item.Name} {Translator.Translate("dbg_err_FileDownloadingStoppedByTimeout_part2")}.", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
             catch (Exception ex)
             {
                 Dispatcher.Invoke(() =>
                 {
-                    status_label.Text = $"Ошибка: загрузка {item.Name} не удалась!";
+                    status_label.Text = $"{Translator.Translate("UI_Downloading")}  {item.Name} {Translator.Translate("UI_NotCompleted_lower")}!";
                 });
-                MessageBox.Show($"Ошибка при загрузке файла {item.Name}: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"{Translator.Translate("Error_WhenDownloadingFile")} {item.Name}: {ex.Message}", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-
-        // Метод для вычисления MD5 хеша файла
         private string CalculateMD5(string filePath)
         {
             using (var md5 = System.Security.Cryptography.MD5.Create())
@@ -575,7 +633,7 @@ namespace Responsible_Program_Manager
 
             Dispatcher.Invoke(() =>
             {
-                status_label.Text = "Установка приложения "+ item.Name + " ...";
+                status_label.Text = $"{Translator.Translate("UI_InstallingApps_1")}  {item.Name} ...";
             });
             try
             {
@@ -583,9 +641,9 @@ namespace Responsible_Program_Manager
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        status_label.Text = "Кэшированный файл не найден.";
+                        status_label.Text = Translator.Translate("Error_CachedFileNotFound");
                     });
-                    throw new FileNotFoundException("Кэшированный файл не найден.", item.CachedPath);
+                    throw new FileNotFoundException(Translator.Translate("Error_CachedFileNotFound"), item.CachedPath);
                 }
 
                 if (Path.GetExtension(item.CachedPath).Contains("exe"))
@@ -593,9 +651,9 @@ namespace Responsible_Program_Manager
                     var processInfo = new ProcessStartInfo
                     {
                         FileName = item.CachedPath,
-                        Arguments = item.InstallArguments, // Аргументы установки
+                        Arguments = item.InstallArguments,
                         UseShellExecute = true,
-                        Verb = "runas" // Запуск с правами администратора
+                        Verb = "runas"
                     };
 
                     using (var process = Process.Start(processInfo))
@@ -606,37 +664,38 @@ namespace Responsible_Program_Manager
                         {
                             Dispatcher.Invoke(() =>
                             {
-                                status_label.Text = $"Приложение {item.Name} успешно установлено.";
+                                status_label.Text = $"{Translator.Translate("Application")} {item.Name} {Translator.Translate("UI_AppInstalledSuccessfully")}.";
                             });
-                            MessageBox.Show($"Приложение {item.Name} успешно установлено.", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show($"{Translator.Translate("Application")} {item.Name} {Translator.Translate("UI_AppInstalledSuccessfully")}.", Translator.Translate("UI_Done"), MessageBoxButton.OK, MessageBoxImage.Information);
                             return true;
                         }
                         else
                         {
                             Dispatcher.Invoke(() =>
                             {
-                                status_label.Text = $"Приложение {item.Name} завершило установку с ошибкой (код {process.ExitCode}).";
+                                status_label.Text = $"{Translator.Translate("Application")} {item.Name} {Translator.Translate("Error_AppEndSetupByError")} {process.ExitCode}).";
                             });
-                            MessageBox.Show($"Приложение {item.Name} завершило установку с ошибкой (код {process.ExitCode}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                            MessageBox.Show($"{Translator.Translate("Application")} {item.Name} {Translator.Translate("Error_AppEndSetupByError")} {process.ExitCode}).", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
                             return false;
                         }
                     }
                 }
                 else
                 {
-                    MessageBox.Show($"Приложение {item.Name} требует ручной установки, поскольку это не установщик.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"{Translator.Translate("Application")} {item.Name} {Translator.Translate("UI_AppWannaManualSetup")}.", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             catch (Exception ex)
             {
                 Dispatcher.Invoke(() =>
                 {
-                    status_label.Text = $"Ошибка при установке приложения: {ex.Message}";
+                    status_label.Text = $"{Translator.Translate("Error_WhenSetupApp")}: {ex.Message}";
                 });
-                MessageBox.Show($"Ошибка при установке приложения: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"{Translator.Translate("Error_WhenSetupApp")}: {ex.Message}", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
             return false;
         }
+
 
         private void EnsureIconCached(FileSystemItem item)
         {
@@ -645,15 +704,13 @@ namespace Responsible_Program_Manager
                 string cacheDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "IconCache");
                 if (!Directory.Exists(cacheDirectory))
                 {
-                    Directory.CreateDirectory(cacheDirectory); // Создать папку, если её нет
+                    Directory.CreateDirectory(cacheDirectory);
                 }
 
                 string iconPath = Path.Combine(cacheDirectory, $"{item.CodeName}.png");
 
-                // Проверяем, существует ли файл
                 if (!File.Exists(iconPath) && !string.IsNullOrEmpty(item.IconUrl))
                 {
-                    // Загружаем иконку из IconUrl
                     using (HttpClient client = new HttpClient())
                     {
                         var iconBytes = client.GetByteArrayAsync(item.IconUrl).GetAwaiter().GetResult();
@@ -661,20 +718,13 @@ namespace Responsible_Program_Manager
                     }
                 }
 
-                item.IconPath = iconPath; // Устанавливаем путь к иконке
+                item.IconPath = iconPath;
             }
             catch (Exception ex)
             {
-                LogError($"Ошибка при работе с иконкой '{item.Name}': {ex.Message}");
+                //Console.WriteLine($"Ошибка при работе с иконкой '{item.Name}': {ex.Message}");
             }
         }
-
-        private void LogError(string message)
-        {
-            string logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
-            File.AppendAllText(logFilePath, $"{DateTime.Now}: {message}{Environment.NewLine}");
-        }
-
 
         private void DeleteCachedFile(FileSystemItem item)
         {
@@ -686,7 +736,7 @@ namespace Responsible_Program_Manager
 
         private void About_btn_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Программист, тестировщик, разработчик: Гранько Максим\n\nРазработано специально для областной Выставки научно-технического творчества \"Техника молодежи\". \n2024","О разработчиках");
+            MessageBox.Show(Translator.Translate("UI_AboutUsLong"), Translator.Translate("UI_About"));
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -707,35 +757,31 @@ namespace Responsible_Program_Manager
         {
             try
             {
-                cached_AllFileSystemItems.Clear(); // Очищаем текущий список
+                cached_AllFileSystemItems.Clear();
+                List<FileSystemItem> items = dbm.GetAllCachedFileSystemItems();
 
-                    // Получаем следующую пачку данных
-                    List<FileSystemItem> items = dbm.GetAllCachedFileSystemItems();
-
-                    if (items.Count > 0)
-                    {
-                        cached_AllFileSystemItems.AddRange(items); // Добавляем элементы в общий список
-                    }
-                    else
-                    {
-                    }
+                if (items.Count > 0)
+                {
+                    cached_AllFileSystemItems.AddRange(items);
+                }
+                else
+                {
+                }
 
                 foreach (var item in cached_AllFileSystemItems)
                 {
-                    EnsureIconCached(item); // Проверяем и загружаем иконки
+                    EnsureIconCached(item);
                 }
 
-                // Обновляем интерфейсные списки
                 cached_AllApps_lbm.Clear();
                 cached_SelectedApps_lbm.Clear();
                 cached_AllApps_lbm.AddItems(cached_AllFileSystemItems);
 
-                // Обновляем категории в ComboBox
                 PopulateCachedCategoriesComboBox();
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show($"Ошибка при загрузке данных из базы: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"{Translator.Translate("Error_WhenLoadDataFromDB")}: {ex.Message}", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -744,21 +790,20 @@ namespace Responsible_Program_Manager
         {
             try
             {
-                // Получаем все уникальные категории
                 var categories = cached_AllFileSystemItems
                     .SelectMany(item => item.Categories?.Split(';') ?? Array.Empty<string>())
                     .Distinct()
-                    .OrderBy(category => category) // Сортируем категории
+                    .OrderBy(category => category)
                     .ToList();
 
-                categories.Insert(0, "Все категории"); // Добавляем опцию для отображения всех категорий
+                categories.Insert(0, Translator.Translate("UI_AllCategories"));
 
                 cached_categories_cb.ItemsSource = categories;
-                cached_categories_cb.SelectedIndex = 0; // Выбираем первую категорию по умолчанию
+                cached_categories_cb.SelectedIndex = 0;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при заполнении категорий: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"{Translator.Translate("Error_WhenParseCategories")}: {ex.Message}", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -775,7 +820,7 @@ namespace Responsible_Program_Manager
 
         private void cached_ApplyButton_Click(object sender, RoutedEventArgs e)
         {
-            if(cached_Selected_ExplorerListBox.Items.Count == 0) { MessageBox.Show("Не выбрано ни одного приложения для установки!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error); return; }
+            if (cached_Selected_ExplorerListBox.Items.Count == 0) { MessageBox.Show($"{Translator.Translate("Error_NoSelectedApps")}!", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error); return; }
             OnWaiting();
 
             // Получаем список выделенных приложений
@@ -786,12 +831,12 @@ namespace Responsible_Program_Manager
             {
                 try
                 {
-                    
-                    if (InstallFile(item) == true )successfullyInstalledItems.Add(item); // Добавляем в список успешно установленных
+
+                    if (InstallFile(item) == true) successfullyInstalledItems.Add(item); // Добавляем в список успешно установленных
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка при установке приложения '{item.Name}': {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"{Translator.Translate("Error_WhenSetupApp")} '{item.Name}': {ex.Message}", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
 
@@ -800,21 +845,22 @@ namespace Responsible_Program_Manager
             // Отображаем сообщение об успешной установке
             if (selectedItems.Count() == successfullyInstalledItems.Count)
             {
-                Dispatcher.Invoke(() => { status_label.Text = "Все выбранные приложения успешно установлены!"; });
-                MessageBox.Show("Все выбранные приложения успешно установлены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                Dispatcher.Invoke(() => { status_label.Text = $"{Translator.Translate("UI_AllSelectedAppsInstalledSuccessfully")}!"; });
+                MessageBox.Show($"{Translator.Translate("UI_AllSelectedAppsInstalledSuccessfully")}!", Translator.Translate("UI_Done"), MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            else if (successfullyInstalledItems.Count == 0) {
+            else if (successfullyInstalledItems.Count == 0)
+            {
 
                 Dispatcher.Invoke(() =>
                 {
-                    status_label.Text = "Ни одного приложения не было установлено.";
+                    status_label.Text = $"{Translator.Translate("Error_AnyAppsWontInstalled")}.";
                 });
-                MessageBox.Show("Ни одного приложения не было установлено.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"{Translator.Translate("Error_AnyAppsWontInstalled")}.", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
             else
             {
-                Dispatcher.Invoke(() => { status_label.Text = "Некоторые приложения не были установлены."; });
-                MessageBox.Show("Некоторые приложения не были установлены.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Dispatcher.Invoke(() => { status_label.Text = $"{Translator.Translate("UI_OneOfSelectedAppsWontBeInstalled")}."; });
+                MessageBox.Show($"{Translator.Translate("UI_OneOfSelectedAppsWontBeInstalled")}.", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -835,11 +881,11 @@ namespace Responsible_Program_Manager
         {
             TextBox textBox = sender as TextBox;
             if (textBox == null) { return; }
-            if (textBox.Text == "Поиск" && textBox.IsFocused == false) { textBox.Text = ""; }
+            if (textBox.Text == Translator.Translate("UI_Search") && textBox.IsFocused == false) { textBox.Text = ""; }
 
             Dispatcher.Invoke(() =>
             {
-                status_label.Text = "Поиск. Введите название приложения или разработчика ПО.";
+                status_label.Text = Translator.Translate("UI_Search_Long") + ".";
             });
         }
 
@@ -847,7 +893,7 @@ namespace Responsible_Program_Manager
         {
             TextBox textBox = sender as TextBox;
             if (textBox == null) { return; }
-            if (textBox.Text == "" && textBox.IsFocused == false) { textBox.Text = "Поиск"; }
+            if (textBox.Text == "" && textBox.IsFocused == false) { textBox.Text = Translator.Translate("UI_Search"); }
             Dispatcher.Invoke(() =>
             {
                 status_label.Text = "";
@@ -856,22 +902,24 @@ namespace Responsible_Program_Manager
 
         private void all_search_textbox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (AllApps_lbm == null || cached_AllApps_lbm == null || cached_SelectedApps_lbm == null) return;
             TextBox textbox = sender as TextBox;
             string search = textbox?.Text?.ToLowerInvariant() ?? "";
-
-            if (string.IsNullOrWhiteSpace(search) || search == "поиск")
+            HashSet<string> selectedItems = null;
+            if (string.IsNullOrWhiteSpace(search) || search == Translator.Translate("UI_Search_lower"))
             {
                 CategoriesComboBox_SelectionChanged(null, null);
                 return;
             }
-
-            var selectedItems = SelectedApps_lbm.GetAllItems().Select(item => item.CodeName).ToHashSet();
-
+            if (Selected_ExplorerListBox.Items.Count != 0)
+            {
+                selectedItems = SelectedApps_lbm.GetAllItems().Select(item => item.CodeName).ToHashSet();
+            }
             var filteredItems = AllFileSystemItems
                 .Where(item =>
                     (item.Name?.ToLowerInvariant().Contains(search) == true ||
                      item.Publisher?.ToLowerInvariant().Contains(search) == true) &&
-                    !selectedItems.Contains(item.CodeName)) // Исключаем уже выбранные
+                    !selectedItems.Contains(item.CodeName))
                 .ToList();
 
             AllApps_lbm.Clear();
@@ -905,10 +953,30 @@ namespace Responsible_Program_Manager
 
         private void clear_cache_btn_Click(object sender, RoutedEventArgs e)
         {
-            if (MessageBox.Show("Нажатие кнопки \"Да\" приведёт к чистке кэша картинок и программ. Вы уверены?", "Внимание!", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            if (MessageBox.Show(Translator.Translate("UI_ClearCacheWarning"), Translator.Translate("Warning") + "!", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
-                Directory.Delete(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache"),true);
-                Directory.Delete(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "IconCache"),true);
+                Directory.Delete(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache"), true);
+
+                try
+                {
+                    string cachePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache");
+                    if (Directory.Exists(cachePath))
+                        Directory.Delete(cachePath, true);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"{Translator.Translate("Error_CacheClearFailed")}: {ex.Message}");
+                }
+                try
+                {
+                    string cachePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "IconCache");
+                    if (Directory.Exists(cachePath))
+                        Directory.Delete(cachePath, true);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"{Translator.Translate("Error_IconCacheClearFailed")}: {ex.Message}");
+                }
             }
         }
 
@@ -923,7 +991,17 @@ namespace Responsible_Program_Manager
             Properties.Settings.Default.openCacheEveryDownload = (bool)open_cache_folder_cb.IsChecked;
             Properties.Settings.Default.md5Verify = (bool)md5_verify_cb.IsChecked;
             Properties.Settings.Default.Save();
-            MessageBox.Show("Настройки сохранены!","Сохранено!");
+            MessageBox.Show($"{Translator.Translate("UI_SettingsSaved")}!", $"{Translator.Translate("Saved")}!");
+        }
+
+        private void clear_selected_list_btn_Click(object sender, RoutedEventArgs e)
+        {
+            if(MessageBox.Show(Translator.Translate("UI_YouSureClearSelected")+"?",Translator.Translate("Warning"),MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                SelectedApps_lbm.Clear();
+                Selected_ExplorerListBox.Items.Clear();
+                ReloadAppsFromDB();
+            }
         }
     }
 }
