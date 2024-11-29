@@ -94,9 +94,10 @@ namespace Responsible_Program_Manager
             IconUrl = excluded.IconUrl,
             Categories = excluded.Categories,
             InstallArguments = excluded.InstallArguments,
-            DownloadPath = excluded.DownloadPath
+            DownloadPath = excluded.DownloadPath,
+            MD5_hash = excluded.MD5_hash
         WHERE
-            FileSystemItems.Version != excluded.Version; -- Обновляем только если версия изменилась
+            FileSystemItems.Version != excluded.Version OR FileSystemItems.MD5_hash != excluded.MD5_hash;
     ";
 
                 using (var command = new SQLiteCommand(query, connection))
@@ -110,7 +111,7 @@ namespace Responsible_Program_Manager
                     command.Parameters.AddWithValue("@Categories", categories != null ? string.Join(";", categories) : (object)DBNull.Value);
                     command.Parameters.AddWithValue("@InstallArguments", installArguments ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@DownloadPath", downloadPath ?? (object)DBNull.Value);
-                    command.Parameters.AddWithValue("@MD5_hash", downloadPath ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@MD5_hash", MD5_hash ?? (object)DBNull.Value);
 
                     command.ExecuteNonQuery();
                 }
@@ -170,8 +171,8 @@ namespace Responsible_Program_Manager
                                     Categories = reader["Categories"]?.ToString(),
                                     InstallArguments = reader["InstallArguments"]?.ToString(),
                                     DownloadPath = reader["DownloadPath"]?.ToString(),
-                                    MD5_hash = reader["MD5_hash"]?.ToString(),
-                                    CachedPath = cachedPath
+                                    CachedPath = cachedPath,
+                                    MD5_hash = reader["MD5_hash"]?.ToString()
                                 });
                             }
                         }

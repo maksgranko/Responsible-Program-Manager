@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Drawing;
 using System.Threading.Tasks;
+using System.Diagnostics;
+using Newtonsoft.Json.Linq;
 
 namespace Responsible_Program_Manager
 {
@@ -35,9 +37,21 @@ namespace Responsible_Program_Manager
             SelectedApps_lbm = new ListBoxManager(Selected_ExplorerListBox);
             cached_AllApps_lbm = new ListBoxManager(cached_AllApps_ExplorerListBox); 
             cached_SelectedApps_lbm = new ListBoxManager(cached_Selected_ExplorerListBox);
-            
+
+            Dispatcher.Invoke(() =>
+            {
+                status_label.Text = "Загрузка данных...";
+            });
             ReloadAppsFromDB();
+            Dispatcher.Invoke(() =>
+            {
+                status_label.Text = "Загрузка кэшированных данных...";
+            });
             ReloadCachedAppsFromDB();
+            Dispatcher.Invoke(() =>
+            {
+                status_label.Text = "";
+            });
         }
 
         private void UpdateDatabase()
@@ -261,6 +275,10 @@ namespace Responsible_Program_Manager
 
             OnWaiting();
 
+            Dispatcher.Invoke(() =>
+            {
+                status_label.Text = "Загрузка приложений...";
+            });
             // Сначала загружаем все файлы
             foreach (var item in SelectedApps_lbm.GetAllItems())
             {
@@ -279,6 +297,10 @@ namespace Responsible_Program_Manager
                 }
             }
 
+            Dispatcher.Invoke(() =>
+            {
+                status_label.Text = "Установка приложений...";
+            });
             // Затем выполняем действия (установка/удаление кэша)
             foreach (var item in SelectedApps_lbm.GetAllItems())
             {
@@ -312,7 +334,7 @@ namespace Responsible_Program_Manager
             OffWaiting();
 
             // Открываем папку Cache, если это необходимо
-            if (shouldOpenCache)
+            if (shouldOpenCache && Properties.Settings.Default.openCacheEveryDownload)
             {
                 OpenCacheFolder(cacheDirectory);
             }
@@ -320,11 +342,19 @@ namespace Responsible_Program_Manager
             // Сообщаем пользователю о результате операции
             if(Selected_ExplorerListBox.Items.Count == 0)
             {
+                Dispatcher.Invoke(() =>
+                {
+                    status_label.Text = "Ошибка: Не выбрано ни одно приложение.";
+                });
                 MessageBox.Show("Не выбрано ни одно приложение.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             if (successfullyInstalledItems.Count == 0)
             {
+                Dispatcher.Invoke(() =>
+                {
+                    status_label.Text = "Ошибка: Ни одного приложения не было установлено.";
+                });
                 MessageBox.Show("Ни одного приложения не было установлено.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
@@ -332,10 +362,18 @@ namespace Responsible_Program_Manager
             {
                 if ((SelectedApps_lbm.GetAllItems().Count() == successfullyInstalledItems.Count) && successfullyInstalledItems.Count != 0)
                 {
+                    Dispatcher.Invoke(() =>
+                    {
+                        status_label.Text = "Все выбранные приложения установлены.";
+                    });
                     MessageBox.Show("Все выбранные приложения успешно установлены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
+                    Dispatcher.Invoke(() =>
+                    {
+                        status_label.Text = "Некоторые приложения не были установлены.";
+                    });
                     MessageBox.Show("Некоторые приложения не были установлены.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
@@ -405,18 +443,37 @@ namespace Responsible_Program_Manager
                     Directory.CreateDirectory(cacheDirectory);
                 }
 
-                // Определяем путь для кэшированного файла
-                string cachePath = Path.Combine(cacheDirectory, $"{item.CodeName}.exe");
+                string cachePath;
 
                 using (var client = new HttpClient())
                 {
                     // Устанавливаем таймаут для загрузки
-                    client.Timeout = TimeSpan.FromSeconds(1200);
+                    client.Timeout = TimeSpan.FromSeconds(3600);
 
                     // Создаём запрос на загрузку
                     using (var response = client.GetAsync(item.DownloadPath, HttpCompletionOption.ResponseHeadersRead).Result)
                     {
                         response.EnsureSuccessStatusCode();
+
+                        // Определяем имя файла
+                        var contentDisposition = response.Content.Headers.ContentDisposition;
+                        if (contentDisposition != null && !string.IsNullOrWhiteSpace(contentDisposition.FileName))
+                        {
+                            // Извлекаем имя файла из заголовка Content-Disposition
+                            cachePath = Path.Combine(cacheDirectory, contentDisposition.FileName.Trim('"'));
+                        }
+                        else
+                        {
+                            // Извлекаем имя файла из URL или используем CodeName
+                            string fileName = Path.GetFileName(new Uri(item.DownloadPath).AbsolutePath);
+                            if (string.IsNullOrWhiteSpace(fileName))
+                            {
+                                // Если в URL нет имени файла, используем CodeName с .exe
+                                fileName = $"{item.CodeName}.exe";
+                            }
+
+                            cachePath = Path.Combine(cacheDirectory, fileName);
+                        }
 
                         // Получаем размер файла
                         var totalBytes = response.Content.Headers.ContentLength ?? -1L;
@@ -442,14 +499,14 @@ namespace Responsible_Program_Manager
                                     int progress = (int)((totalRead * 100L) / totalBytes);
                                     Dispatcher.Invoke(() =>
                                     {
-                                        status_label.Content = $"Загрузка  {item.Name} : {progress}%";
+                                        status_label.Text = $"Загрузка {item.Name} : {progress}%";
                                     });
                                 }
                                 else
                                 {
                                     Dispatcher.Invoke(() =>
                                     {
-                                        status_label.Content = $"Загрузка  {item.Name} : {totalRead / 1024} KB";
+                                        status_label.Text = $"Загрузка {item.Name} : {totalRead / 1024} KB";
                                     });
                                 }
                             }
@@ -457,15 +514,17 @@ namespace Responsible_Program_Manager
                     }
                 }
 
-                // Проверка MD5, если хеш указан
-                if (!string.IsNullOrWhiteSpace(item.MD5_hash))
+                if (!Properties.Settings.Default.md5Verify)
                 {
-                    string calculatedMD5 = CalculateMD5(cachePath);
-                    if (calculatedMD5 != item.MD5_hash)
+                    if (!string.IsNullOrWhiteSpace(item.MD5_hash))
                     {
-                        // Если хеши не совпадают, удаляем файл и выбрасываем исключение
-                        File.Delete(cachePath);
-                        throw new Exception($"MD5 хеш файла {item.Name} не совпадает с ожидаемым значением.");
+                        string calculatedMD5 = CalculateMD5(cachePath);
+                        if (calculatedMD5 != item.MD5_hash)
+                        {
+                            // Если хеши не совпадают, удаляем файл и выбрасываем исключение
+                            File.Delete(cachePath);
+                            throw new Exception($"MD5 хеш файла {item.Name} не совпадает с ожидаемым значением.");
+                        }
                     }
                 }
 
@@ -477,14 +536,14 @@ namespace Responsible_Program_Manager
                 // Сообщение об успешной загрузке
                 Dispatcher.Invoke(() =>
                 {
-                    status_label.Content = $"Загрузка {item.Name} завершена!";
+                    status_label.Text = $"Загрузка {item.Name} завершена!";
                 });
             }
             catch (TaskCanceledException)
             {
                 Dispatcher.Invoke(() =>
                 {
-                    status_label.Content = $"Ошибка: загрузка {item.Name} превышает таймаут!";
+                    status_label.Text = $"Ошибка: загрузка {item.Name} превышает таймаут!";
                 });
                 MessageBox.Show($"Загрузка файла {item.Name} была прервана из-за таймаута.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -492,11 +551,12 @@ namespace Responsible_Program_Manager
             {
                 Dispatcher.Invoke(() =>
                 {
-                    status_label.Content = $"Ошибка: загрузка {item.Name} не удалась!";
+                    status_label.Text = $"Ошибка: загрузка {item.Name} не удалась!";
                 });
                 MessageBox.Show($"Ошибка при загрузке файла {item.Name}: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         // Метод для вычисления MD5 хеша файла
         private string CalculateMD5(string filePath)
@@ -512,39 +572,67 @@ namespace Responsible_Program_Manager
 
         private bool InstallFile(FileSystemItem item)
         {
+
+            Dispatcher.Invoke(() =>
+            {
+                status_label.Text = "Установка приложения "+ item.Name;
+            });
             try
             {
                 if (string.IsNullOrWhiteSpace(item.CachedPath) && !File.Exists(item.CachedPath))
                 {
+                    Dispatcher.Invoke(() =>
+                    {
+                        status_label.Text = "Кэшированный файл не найден.";
+                    });
                     throw new FileNotFoundException("Кэшированный файл не найден.", item.CachedPath);
                 }
 
-                var processInfo = new System.Diagnostics.ProcessStartInfo
+                if (Path.GetExtension(item.CachedPath).Contains("exe"))
                 {
-                    FileName = item.CachedPath,
-                    Arguments = item.InstallArguments, // Аргументы установки
-                    UseShellExecute = true,
-                    Verb = "runas" // Запуск с правами администратора
-                };
+                    var processInfo = new ProcessStartInfo
+                    {
+                        FileName = item.CachedPath,
+                        Arguments = item.InstallArguments, // Аргументы установки
+                        UseShellExecute = true,
+                        Verb = "runas" // Запуск с правами администратора
+                    };
 
-                using (var process = System.Diagnostics.Process.Start(processInfo))
+                    using (var process = Process.Start(processInfo))
+                    {
+                        process.WaitForExit();
+
+                        if (process.ExitCode == 0)
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                status_label.Text = $"Приложение {item.Name} успешно установлено.";
+                            });
+                            MessageBox.Show($"Приложение {item.Name} успешно установлено.", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                            return true;
+                        }
+                        else
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                status_label.Text = $"Приложение {item.Name} завершило установку с ошибкой (код {process.ExitCode}).";
+                            });
+                            MessageBox.Show($"Приложение {item.Name} завершило установку с ошибкой (код {process.ExitCode}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                            return false;
+                        }
+                    }
+                }
+                else
                 {
-                    process.WaitForExit();
-
-                    if (process.ExitCode == 0)
-                    {
-                        MessageBox.Show($"Приложение {item.Name} успешно установлено.", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-                        return true;
-                    }
-                    else
-                    {
-                        MessageBox.Show($"Приложение {item.Name} завершило установку с ошибкой (код {process.ExitCode}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return false;
-                    }
+                    MessageBox.Show($"Приложение {item.Name} требует ручной установки, поскольку это не установщик.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             catch (Exception ex)
             {
+                Dispatcher.Invoke(() =>
+                {
+                    status_label.Text = $"Ошибка при установке приложения: {ex.Message}";
+                });
                 MessageBox.Show($"Ошибка при установке приложения: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             return false;
@@ -680,6 +768,9 @@ namespace Responsible_Program_Manager
             AllSoft_grid.Visibility = Visibility.Hidden;
             Cachedsoft_grid.Visibility = Visibility.Hidden;
             Settings_grid.Visibility = Visibility.Visible;
+
+            open_cache_folder_cb.IsChecked = Properties.Settings.Default.openCacheEveryDownload;
+            md5_verify_cb.IsChecked = Properties.Settings.Default.md5Verify;
         }
 
         private void cached_ApplyButton_Click(object sender, RoutedEventArgs e)
@@ -709,13 +800,20 @@ namespace Responsible_Program_Manager
             // Отображаем сообщение об успешной установке
             if (selectedItems.Count() == successfullyInstalledItems.Count)
             {
+                Dispatcher.Invoke(() => { status_label.Text = "Все выбранные приложения успешно установлены!"; });
                 MessageBox.Show("Все выбранные приложения успешно установлены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else if (successfullyInstalledItems.Count == 0) {
+
+                Dispatcher.Invoke(() =>
+                {
+                    status_label.Text = "Ни одного приложения не было установлено.";
+                });
                 MessageBox.Show("Ни одного приложения не было установлено.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             else
             {
+                Dispatcher.Invoke(() => { status_label.Text = "Некоторые приложения не были установлены."; });
                 MessageBox.Show("Некоторые приложения не были установлены.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
@@ -738,6 +836,11 @@ namespace Responsible_Program_Manager
             TextBox textBox = sender as TextBox;
             if (textBox == null) { return; }
             if (textBox.Text == "Поиск" && textBox.IsFocused == false) { textBox.Text = ""; }
+
+            Dispatcher.Invoke(() =>
+            {
+                status_label.Text = "Поиск. Введите название приложения или разработчика ПО.";
+            });
         }
 
         private void all_search_textbox_MouseLeave(object sender, MouseEventArgs e)
@@ -745,6 +848,10 @@ namespace Responsible_Program_Manager
             TextBox textBox = sender as TextBox;
             if (textBox == null) { return; }
             if (textBox.Text == "" && textBox.IsFocused == false) { textBox.Text = "Поиск"; }
+            Dispatcher.Invoke(() =>
+            {
+                status_label.Text = "";
+            });
         }
 
         private void all_search_textbox_TextChanged(object sender, TextChangedEventArgs e)
@@ -793,7 +900,30 @@ namespace Responsible_Program_Manager
 
         private void refresh_btn_Click(object sender, RoutedEventArgs e)
         {
+            ReloadCachedAppsFromDB();
+        }
 
+        private void clear_cache_btn_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Нажатие кнопки \"Да\" приведёт к чистке кэша картинок и программ. Вы уверены?", "Внимание!", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                Directory.Delete(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache"),true);
+                Directory.Delete(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "IconCache"),true);
+            }
+        }
+
+        private void open_cache_path_btn_Click(object sender, RoutedEventArgs e)
+        {
+            if (!Directory.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache"))) Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache"));
+            OpenCacheFolder(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache"));
+        }
+
+        private void save_settings_btn_Click(object sender, RoutedEventArgs e)
+        {
+            Properties.Settings.Default.openCacheEveryDownload = (bool)open_cache_folder_cb.IsChecked;
+            Properties.Settings.Default.md5Verify = (bool)md5_verify_cb.IsChecked;
+            Properties.Settings.Default.Save();
+            MessageBox.Show("Настройки сохранены!","Сохранено!");
         }
     }
 }
