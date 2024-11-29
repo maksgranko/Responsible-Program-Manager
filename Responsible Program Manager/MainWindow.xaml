@@ -81,7 +81,7 @@
             </ListBox>
 
             <Label x:Name="selected_apps_label" Content="Выбранные приложения:" Margin="25,0,25,203" FontSize="16" MinHeight="32" MinWidth="211" Height="32" VerticalAlignment="Bottom"/>
-            <Label x:Name="all_apps_label" Content="Приложения:" Margin="25,11,457,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" MinWidth="139"/>
+            <Label x:Name="all_apps_label" Content="Приложения:" Margin="25,11,395,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" MinWidth="139"/>
             <ComboBox x:Name="categories_cb" Margin="0,16,25,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" Width="120" SelectionChanged="CategoriesComboBox_SelectionChanged"/>
             <Label x:Name="categories_label" Content="Категории:" Margin="333,11,150,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" HorizontalContentAlignment="Right" MinWidth="91"/>
             <TextBox x:Name="all_search_textbox" Margin="0,16,282,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="22" HorizontalAlignment="Right" Width="108" ToolTip="Поиск" Tag="Поиск" Text="Поиск" MouseEnter="all_search_textbox_MouseEnter" MouseLeave="all_search_textbox_MouseLeave" TextChanged="all_search_textbox_TextChanged"/>
@@ -93,6 +93,8 @@
             <Separator Height="23"/>
             <Button x:Name="settings_btn" Content="Настройки" Margin="5 0 5 10" Click="settings_btn_Click"/>
             <Button x:Name="about_btn" Content="Разработчики" Margin="5 0 5 10" Click="About_btn_Click"/>
+            <Separator Height="23"/>
+            <Label x:Name="status_label" Content="Приложение готово к работе."/>
         </StackPanel>
         <Grid x:Name="Cachedsoft_grid" Grid.Column="1" Visibility="Visible">
             <ListBox x:Name="cached_AllApps_ExplorerListBox" Margin="25,48,25,238" MouseDoubleClick="cached_AllApps_ExplorerListBox_MouseDoubleClick">
@@ -154,18 +156,16 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            
+
             <Label x:Name="cached_selected_apps_label" Content="Выбранные приложения:" Margin="25,0,25,203" FontSize="16" MinHeight="32" MinWidth="211" Height="32" VerticalAlignment="Bottom"/>
-            <Label x:Name="cached_all_apps_label" Content="Приложения:" Margin="25,11,310,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" MinWidth="139"/>
+            <Label x:Name="cached_all_apps_label" Content="Приложения:" Margin="25,11,347,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" MinWidth="139"/>
             <ComboBox x:Name="cached_categories_cb" Margin="0,16,25,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" Width="120" SelectionChanged="CategoriesComboBox_SelectionChanged"/>
             <Label x:Name="cached_categories_label" Content="Категории:" Margin="305,11,150,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" HorizontalContentAlignment="Right" MinWidth="91"/>
             <Grid x:Name="Settings_grid" Visibility="Hidden"/>
-            <Button x:Name="cached_apply_btn" Content="Применить" Margin="0,0,25,10" HorizontalAlignment="Right" Width="119" Height="25" VerticalAlignment="Bottom" Click="cached_ApplyButton_Click"/>
-            <ComboBox x:Name="cached_apply_mode_combobox" Margin="25,0,163,10" Height="25" VerticalAlignment="Bottom" SelectedIndex="2">
-                <Label x:Name="button1" Content="Только загрузить" />
-                <Label Content="Только установить"/>
-                <Label Content="Загрузить и установить"/>
-            </ComboBox>
+            <Button x:Name="cached_apply_btn" Content="Установить" Margin="0,0,25,10" HorizontalAlignment="Right" Width="119" Height="25" VerticalAlignment="Bottom" Click="cached_ApplyButton_Click"/>
+            <Button x:Name="refresh_btn" HorizontalAlignment="Right" Margin="0,10,268,0" VerticalAlignment="Top" Height="33" Width="37" Click="refresh_btn_Click">
+                <Image x:Name="refresh_icon" Height="32" Width="32" Loaded="refresh_icon_Loaded" />
+            </Button>
 
         </Grid>
 

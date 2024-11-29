@@ -37,7 +37,8 @@ namespace Responsible_Program_Manager
                 Categories TEXT,
                 InstallArguments TEXT NOT NULL,
                 DownloadPath TEXT,
-                CachedPath TEXT
+                CachedPath TEXT,
+                MD5_hash TEXT
             );
         ";
 
@@ -48,31 +49,55 @@ namespace Responsible_Program_Manager
             }
         }
 
-        public void AddOrUpdateFileSystemItem(string codeName, string name, string publisher, string installedVersion, string version, string iconPath, string iconUrl, string categories, string installArguments, string downloadPath, string cachedPath)
+        public void AddOrUpdateFileSystemItem(
+    string codeName,
+    string name,
+    string publisher,
+    string installedVersion,
+    string version,
+    string iconUrl,
+    string categories,
+    string installArguments,
+    string downloadPath,
+    string MD5_hash
+    )
         {
             using (var connection = new SQLiteConnection(_connectionString))
             {
                 connection.Open();
 
+                // Обновленный запрос
                 string query = @"
-                    INSERT OR REPLACE INTO FileSystemItems 
-                    (Id, CodeName, Name, Publisher, InstalledVersion, Version, IconPath, IconUrl, Categories, InstallArguments, DownloadPath, CachedPath)
-                    VALUES (
-                        (SELECT Id FROM FileSystemItems WHERE CodeName = @CodeName),
-                        @CodeName, 
-                        @Name, 
-                        @Publisher, 
-                        @InstalledVersion, 
-                        @Version, 
-                        @IconPath, 
-                        @IconUrl, 
-                        @Categories, 
-                        @InstallArguments, 
-                        @DownloadPath,
-                        @CachedPath
-                    );
-                ";
-
+        INSERT INTO FileSystemItems 
+        (CodeName, Name, Publisher, InstalledVersion, Version, IconUrl, Categories, InstallArguments, DownloadPath, MD5_hash)
+        VALUES 
+        (
+            @CodeName, 
+            @Name, 
+            @Publisher, 
+            @InstalledVersion, 
+            @Version,
+            @IconUrl, 
+            @Categories, 
+            @InstallArguments, 
+            @DownloadPath,
+            @MD5_hash
+        )
+        ON CONFLICT(CodeName) DO UPDATE SET 
+            Name = excluded.Name,
+            Publisher = excluded.Publisher,
+            InstalledVersion = excluded.InstalledVersion,
+            Version = CASE 
+                        WHEN FileSystemItems.Version != excluded.Version THEN excluded.Version
+                        ELSE FileSystemItems.Version
+                     END,
+            IconUrl = excluded.IconUrl,
+            Categories = excluded.Categories,
+            InstallArguments = excluded.InstallArguments,
+            DownloadPath = excluded.DownloadPath
+        WHERE
+            FileSystemItems.Version != excluded.Version; -- Обновляем только если версия изменилась
+    ";
 
                 using (var command = new SQLiteCommand(query, connection))
                 {
@@ -81,12 +106,11 @@ namespace Responsible_Program_Manager
                     command.Parameters.AddWithValue("@Publisher", publisher ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@InstalledVersion", installedVersion ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Version", version ?? (object)DBNull.Value);
-                    command.Parameters.AddWithValue("@IconPath", iconPath ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@IconUrl", iconUrl ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Categories", categories != null ? string.Join(";", categories) : (object)DBNull.Value);
-                    command.Parameters.AddWithValue("@InstallArguments", installArguments);
+                    command.Parameters.AddWithValue("@InstallArguments", installArguments ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@DownloadPath", downloadPath ?? (object)DBNull.Value);
-                    command.Parameters.AddWithValue("@CachedPath", cachedPath ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@MD5_hash", downloadPath ?? (object)DBNull.Value);
 
                     command.ExecuteNonQuery();
                 }
@@ -146,6 +170,7 @@ namespace Responsible_Program_Manager
                                     Categories = reader["Categories"]?.ToString(),
                                     InstallArguments = reader["InstallArguments"]?.ToString(),
                                     DownloadPath = reader["DownloadPath"]?.ToString(),
+                                    MD5_hash = reader["MD5_hash"]?.ToString(),
                                     CachedPath = cachedPath
                                 });
                             }
@@ -185,7 +210,8 @@ namespace Responsible_Program_Manager
                                 Categories = reader["Categories"]?.ToString(),
                                 InstallArguments = reader["InstallArguments"]?.ToString(),
                                 DownloadPath = reader["DownloadPath"]?.ToString(),
-                                CachedPath = reader["CachedPath"]?.ToString() // Добавлено поле
+                                CachedPath = reader["CachedPath"]?.ToString(), // Добавлено поле
+                                MD5_hash = reader["MD5_hash"]?.ToString()
                             });
                         }
                     }
@@ -225,7 +251,9 @@ namespace Responsible_Program_Manager
                                 IconUrl = reader["IconUrl"]?.ToString(), // Новый URL для удалённой базы
                                 Categories = reader["Categories"]?.ToString(), // Преобразуем строку в массив
                                 InstallArguments = reader["InstallArguments"]?.ToString(),
-                                DownloadPath = reader["DownloadPath"]?.ToString()
+                                DownloadPath = reader["DownloadPath"]?.ToString(),
+                                CachedPath = reader["CachedPath"]?.ToString(),
+                                MD5_hash = reader["MD5_hash"]?.ToString()
                             });
                         }
                     }

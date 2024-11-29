@@ -65,6 +65,7 @@ namespace Responsible_Program_Manager
             public string InstallArguments { get; set; }
             public string DownloadPath { get; set; }
             public string CachedPath { get; set; } // Новый путь к кэшированному файлу
+            public string MD5_hash { get; set; }
 
         public override string ToString()
         {
