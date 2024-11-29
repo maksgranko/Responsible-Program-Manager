@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -8,14 +7,18 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.IO;
 using System;
+using System.Threading;
 
 namespace Responsible_Program_Manager
 {
     public partial class MainWindow : Window
     {
         private List<FileSystemItem> AllFileSystemItems = new List<FileSystemItem>();
+        private List<FileSystemItem> cached_AllFileSystemItems = new List<FileSystemItem>(); 
         public ListBoxManager AllApps_lbm = null;
         public ListBoxManager SelectedApps_lbm = null;
+        public ListBoxManager cached_AllApps_lbm = null;
+        public ListBoxManager cached_SelectedApps_lbm = null;
         public DatabaseManager dbm = new DatabaseManager("apps.db");
 
         public MainWindow()
@@ -25,7 +28,10 @@ namespace Responsible_Program_Manager
             InitializeComponent();
             AllApps_lbm = new ListBoxManager(AllApps_ExplorerListBox);
             SelectedApps_lbm = new ListBoxManager(Selected_ExplorerListBox);
+            cached_AllApps_lbm = new ListBoxManager(cached_AllApps_ExplorerListBox); 
+            cached_SelectedApps_lbm = new ListBoxManager(cached_Selected_ExplorerListBox);
             ReloadAppsFromDB();
+            ReloadCachedAppsFromDB();
         }
 
         private void UpdateDatabase()
@@ -91,6 +97,10 @@ namespace Responsible_Program_Manager
                     }
                 }
 
+                foreach (var item in AllFileSystemItems)
+                {
+                    EnsureIconCached(item); // Проверяем и загружаем иконки
+                }
 
                 AllApps_lbm.Clear();
                 SelectedApps_lbm.Clear();
@@ -157,8 +167,6 @@ namespace Responsible_Program_Manager
                 }
             }
         }
-
-
         private void AddItemFromContextMenu(object sender, RoutedEventArgs e)
         {
             if (AllApps_ExplorerListBox.SelectedItem is FileSystemItem selectedItem)
@@ -175,7 +183,7 @@ namespace Responsible_Program_Manager
                 MessageBox.Show($"Источник загрузки: {selectedItem.DownloadPath}", "Источник", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
-
+        
         private string ProcessInstallArguments(string installArguments, string cacheDirectory)
         {
             if (string.IsNullOrWhiteSpace(installArguments))
@@ -242,6 +250,7 @@ namespace Responsible_Program_Manager
             bool shouldOpenCache = false; // Флаг, указывающий, нужно ли открывать папку
             var successfullyCachedItems = new List<FileSystemItem>(); // Список успешно загруженных элементов
 
+            OnWaiting();
             // Сначала загружаем все файлы
             foreach (var item in SelectedApps_lbm.GetAllItems())
             {
@@ -276,6 +285,7 @@ namespace Responsible_Program_Manager
                         break;
                 }
             }
+            OffWaiting();
 
             // Открываем папку Cache только если это необходимо
             if (shouldOpenCache && successfullyCachedItems.Count > 0)
@@ -284,6 +294,33 @@ namespace Responsible_Program_Manager
             }
 
             MessageBox.Show("Операция выполнена!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void OnWaiting()
+        {
+            Cursor = Cursors.Wait;
+
+            about_btn.IsEnabled = false;
+            all_soft_btn.IsEnabled = false;
+            apply_btn.IsEnabled = false;
+            settings_btn.IsEnabled = false;
+            cached_soft_btn.IsEnabled = false;
+
+            this.UpdateLayout();
+            Thread.Sleep(100);
+            this.UpdateLayout();
+        }
+        private void OffWaiting()
+        {
+            Cursor = Cursors.Arrow;
+
+            about_btn.IsEnabled = true;
+            all_soft_btn.IsEnabled = true;
+            apply_btn.IsEnabled = true;
+            settings_btn.IsEnabled = true;
+            cached_soft_btn.IsEnabled = true;
+
+            this.UpdateLayout();
         }
 
 
@@ -338,6 +375,7 @@ namespace Responsible_Program_Manager
                 MessageBox.Show($"Ошибка при загрузке файла: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
         private void InstallFile(FileSystemItem item)
         {
             try
@@ -375,12 +413,161 @@ namespace Responsible_Program_Manager
             }
         }
 
+        private void EnsureIconCached(FileSystemItem item)
+        {
+            try
+            {
+                string cacheDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "IconCache");
+                if (!Directory.Exists(cacheDirectory))
+                {
+                    Directory.CreateDirectory(cacheDirectory); // Создать папку, если её нет
+                }
+
+                string iconPath = Path.Combine(cacheDirectory, $"{item.CodeName}.png");
+
+                // Проверяем, существует ли файл
+                if (!File.Exists(iconPath) && !string.IsNullOrEmpty(item.IconUrl))
+                {
+                    // Загружаем иконку из IconUrl
+                    using (HttpClient client = new HttpClient())
+                    {
+                        var iconBytes = client.GetByteArrayAsync(item.IconUrl).GetAwaiter().GetResult();
+                        File.WriteAllBytes(iconPath, iconBytes);
+                    }
+                }
+
+                item.IconPath = iconPath; // Устанавливаем путь к иконке
+            }
+            catch (Exception ex)
+            {
+                LogError($"Ошибка при работе с иконкой '{item.Name}': {ex.Message}");
+            }
+        }
+
+        private void LogError(string message)
+        {
+            string logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
+            File.AppendAllText(logFilePath, $"{DateTime.Now}: {message}{Environment.NewLine}");
+        }
+
+
         private void DeleteCachedFile(FileSystemItem item)
         {
             if (File.Exists(item.CachedPath))
             {
                 File.Delete(item.CachedPath);
             }
+        }
+
+        private void About_btn_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Программист, тестировщик, разработчик: Гранько Максим\n\nРазработано специально для областной Выставки научно-технического творчества \"Техника молодежи\". \n2024","О разработчиках");
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            AllSoft_grid.Visibility = Visibility.Visible;
+            Cachedsoft_grid.Visibility = Visibility.Hidden;
+            Settings_grid.Visibility = Visibility.Hidden;
+        }
+
+        private void cached_soft_btn_Click(object sender, RoutedEventArgs e)
+        {
+            AllSoft_grid.Visibility = Visibility.Hidden;
+            Cachedsoft_grid.Visibility = Visibility.Visible;
+            Settings_grid.Visibility = Visibility.Hidden;
+        }
+
+        private void ReloadCachedAppsFromDB()
+        {
+
+            try
+            {
+                int batchSize = 100;
+                int offset = 0;
+                bool hasMoreData = true;
+
+                cached_AllFileSystemItems.Clear();
+
+                while (hasMoreData)
+                {
+                    List<FileSystemItem> items = dbm.GetAllCachedFileSystemItems();
+
+                    if (items.Count > 0)
+                    {
+                        AllFileSystemItems.AddRange(items);
+                        offset += batchSize;
+                    }
+                    else
+                    {
+                        hasMoreData = false;
+                    }
+                }
+
+                foreach (var item in AllFileSystemItems)
+                {
+                    EnsureIconCached(item); // Проверяем и загружаем иконки
+                }
+
+                cached_AllApps_lbm.Clear();
+                cached_SelectedApps_lbm.Clear();
+                cached_AllApps_lbm.AddItems(AllFileSystemItems);
+
+                // Обновляем категории в ComboBox
+                PopulateCachedCategoriesComboBox();
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Ошибка при загрузке данных из базы: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void PopulateCachedCategoriesComboBox()
+        {
+            // аналогичен методу PopulateCategoriesComboBox(), но только для cached.
+        }
+
+        private void settings_btn_Click(object sender, RoutedEventArgs e)
+        {
+            AllSoft_grid.Visibility = Visibility.Hidden;
+            Cachedsoft_grid.Visibility = Visibility.Hidden;
+            Settings_grid.Visibility = Visibility.Visible;
+        }
+
+        private void cached_ApplyButton_Click(object sender, RoutedEventArgs e)
+        {
+            // устанавливает всё, что находится в cached_selected, аналогичен методу ApplyButton_Click, apply_mode_combobox.SelectedIndex = 1, но не нужно удалять кэшированный файл.
+        }
+
+        private void cached_AllApps_ExplorerListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // дабл клик должен приводить к тому, что выделенный объект из cached_allapps перемещается в cached_selected
+        }
+
+        private void all_search_textbox_MouseEnter(object sender, MouseEventArgs e)
+        {
+            TextBox textBox = sender as TextBox;
+            if (textBox == null) { return; }
+            if (textBox.Text == "Поиск") { textBox.Text = ""; }
+        }
+
+        private void all_search_textbox_MouseLeave(object sender, MouseEventArgs e)
+        {
+            TextBox textBox = sender as TextBox;
+            if (textBox == null) { return; }
+            if (textBox.Text == "") { textBox.Text = "Поиск"; }
+        }
+
+        private void all_search_textbox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            TextBox textbox = sender as TextBox;
+            string search = textbox.Text;
+            //здесь необходимо реализовать функцию поиска по названию и по Publisher, относительно AllApps_lbm, исключая те, что уже имеются в SelectedApps_lbm
+        }
+
+        private void cached_Selected_ExplorerListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // дабл клик должен приводить к тому, что выделенный объект из cached_selected перемещается в cached_allapps
         }
     }
 }

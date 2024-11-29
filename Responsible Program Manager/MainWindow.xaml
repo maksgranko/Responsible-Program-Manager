@@ -12,8 +12,7 @@
             <ColumnDefinition Width="19*"/>
             <ColumnDefinition Width="61*"/>
         </Grid.ColumnDefinitions>
-
-        <Grid Grid.Column="1">
+        <Grid x:Name="AllSoft_grid" Grid.Column="1" Visibility="Hidden">
             <ListBox x:Name="AllApps_ExplorerListBox" Margin="25,48,25,238" MouseDoubleClick="AllApps_ExplorerListBox_MouseDoubleClick">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
@@ -38,7 +37,8 @@
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
-            </ListBox>
+            </ListBox>
+
             <Button x:Name="apply_btn" Grid.Column="1" Content="Применить" Margin="0,0,25,10" HorizontalAlignment="Right" Width="119" Height="25" VerticalAlignment="Bottom" Click="ApplyButton_Click"/>
             <ComboBox x:Name="apply_mode_combobox" Grid.Column="1" Margin="25,0,163,10" Height="25" VerticalAlignment="Bottom" SelectedIndex="2">
                 <Label x:Name="button" Content="Только загрузить" />
@@ -81,15 +81,93 @@
             </ListBox>
 
             <Label x:Name="selected_apps_label" Content="Выбранные приложения:" Margin="25,0,25,203" FontSize="16" MinHeight="32" MinWidth="211" Height="32" VerticalAlignment="Bottom"/>
-            <Label x:Name="all_apps_label" Content="Приложения:" Margin="25,11,310,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" MinWidth="139"/>
+            <Label x:Name="all_apps_label" Content="Приложения:" Margin="25,11,457,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" MinWidth="139"/>
             <ComboBox x:Name="categories_cb" Margin="0,16,25,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" Width="120" SelectionChanged="CategoriesComboBox_SelectionChanged"/>
-            <Label x:Name="categories_label" Content="Категории:" Margin="305,11,150,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" HorizontalContentAlignment="Right" MinWidth="91"/>
+            <Label x:Name="categories_label" Content="Категории:" Margin="333,11,150,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" HorizontalContentAlignment="Right" MinWidth="91"/>
+            <TextBox x:Name="all_search_textbox" Margin="0,16,282,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="22" HorizontalAlignment="Right" Width="108" ToolTip="Поиск" Tag="Поиск" Text="Поиск" MouseEnter="all_search_textbox_MouseEnter" MouseLeave="all_search_textbox_MouseLeave" TextChanged="all_search_textbox_TextChanged"/>
         </Grid>
         <StackPanel>
             <Separator Height="23"/>
-            <Button Content="Программы"/>
+            <Button x:Name="all_soft_btn" Content="Найти программы" Margin="5 0 5 10" Click="Button_Click"/>
+            <Button x:Name="cached_soft_btn" Content="Загруженное ПО" Margin="5 0 5 0" Click="cached_soft_btn_Click"/>
             <Separator Height="23"/>
-            <Button Content="Настройки"/>
+            <Button x:Name="settings_btn" Content="Настройки" Margin="5 0 5 10" Click="settings_btn_Click"/>
+            <Button x:Name="about_btn" Content="Разработчики" Margin="5 0 5 10" Click="About_btn_Click"/>
         </StackPanel>
+        <Grid x:Name="Cachedsoft_grid" Grid.Column="1" Visibility="Visible">
+            <ListBox x:Name="cached_AllApps_ExplorerListBox" Margin="25,48,25,238" MouseDoubleClick="cached_AllApps_ExplorerListBox_MouseDoubleClick">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="40" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="40" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="40" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="40" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Image Grid.Column="0" Width="32" Height="32" Margin="5,0" Source="{Binding IconPath}" />
+                            <TextBlock Grid.Column="2" Text="{Binding Name}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="4" Text="{Binding Publisher}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="8" Text="{Binding InstalledVersion}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="6" Text="{Binding Version}" VerticalAlignment="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <ListBox x:Name="cached_Selected_ExplorerListBox" Margin="25,0,25,53" Height="148" VerticalAlignment="Bottom" MouseDoubleClick="cached_Selected_ExplorerListBox_MouseDoubleClick">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <!-- Для изображения -->
+                                <ColumnDefinition Width="10" />
+                                <!-- Отступ -->
+                                <ColumnDefinition Width="100" />
+                                <!-- Для Name -->
+                                <ColumnDefinition Width="10" />
+                                <!-- Отступ -->
+                                <ColumnDefinition Width="100" />
+                                <!-- Для Publisher -->
+                                <ColumnDefinition Width="10" />
+                                <!-- Отступ -->
+                                <ColumnDefinition Width="100" />
+                                <!-- Для Version -->
+                                <ColumnDefinition Width="10" />
+                                <!-- Отступ -->
+                                <ColumnDefinition Width="100" />
+                                <!-- Для InstalledVersion -->
+                            </Grid.ColumnDefinitions>
+
+                            <Image Grid.Column="0" Width="32" Height="32" Margin="5,0" Source="{Binding IconPath}" />
+                            <TextBlock Grid.Column="2" Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="4" Text="{Binding Publisher}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="6" Text="{Binding Version}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="8" Text="{Binding InstalledVersion}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            
+            <Label x:Name="cached_selected_apps_label" Content="Выбранные приложения:" Margin="25,0,25,203" FontSize="16" MinHeight="32" MinWidth="211" Height="32" VerticalAlignment="Bottom"/>
+            <Label x:Name="cached_all_apps_label" Content="Приложения:" Margin="25,11,310,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" MinWidth="139"/>
+            <ComboBox x:Name="cached_categories_cb" Margin="0,16,25,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" Width="120" SelectionChanged="CategoriesComboBox_SelectionChanged"/>
+            <Label x:Name="cached_categories_label" Content="Категории:" Margin="305,11,150,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" HorizontalContentAlignment="Right" MinWidth="91"/>
+            <Grid x:Name="Settings_grid" Visibility="Hidden"/>
+            <Button x:Name="cached_apply_btn" Content="Применить" Margin="0,0,25,10" HorizontalAlignment="Right" Width="119" Height="25" VerticalAlignment="Bottom" Click="cached_ApplyButton_Click"/>
+            <ComboBox x:Name="cached_apply_mode_combobox" Margin="25,0,163,10" Height="25" VerticalAlignment="Bottom" SelectedIndex="2">
+                <Label x:Name="button1" Content="Только загрузить" />
+                <Label Content="Только установить"/>
+                <Label Content="Загрузить и установить"/>
+            </ComboBox>
+
+        </Grid>
+
     </Grid>
 </Window>

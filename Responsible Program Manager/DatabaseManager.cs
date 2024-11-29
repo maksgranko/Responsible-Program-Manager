@@ -114,6 +114,49 @@ namespace Responsible_Program_Manager
                 }
             }
         }
+
+        public List<FileSystemItem> GetAllCachedFileSystemItems()
+        {
+            var items = new List<FileSystemItem>();
+
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+
+                string selectQuery = "SELECT * FROM FileSystemItems;";
+
+                using (var command = new SQLiteCommand(selectQuery, connection))
+                {
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var cachedPath = reader["CachedPath"]?.ToString();
+                            if (!string.IsNullOrEmpty(cachedPath) && File.Exists(cachedPath))
+                            {
+                                items.Add(new FileSystemItem
+                                {
+                                    CodeName = reader["CodeName"].ToString(),
+                                    Name = reader["Name"].ToString(),
+                                    Publisher = reader["Publisher"]?.ToString(),
+                                    InstalledVersion = reader["InstalledVersion"]?.ToString(),
+                                    Version = reader["Version"]?.ToString(),
+                                    IconPath = reader["IconPath"]?.ToString(),
+                                    IconUrl = reader["IconUrl"]?.ToString(),
+                                    Categories = reader["Categories"]?.ToString(),
+                                    InstallArguments = reader["InstallArguments"]?.ToString(),
+                                    DownloadPath = reader["DownloadPath"]?.ToString(),
+                                    CachedPath = cachedPath
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            return items;
+        }
+
         public List<FileSystemItem> GetAllFileSystemItems()
         {
             var items = new List<FileSystemItem>();
