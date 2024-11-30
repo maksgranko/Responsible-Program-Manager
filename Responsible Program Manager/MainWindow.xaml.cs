@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Resources;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -466,6 +467,9 @@ namespace Responsible_Program_Manager
             apply_btn.IsEnabled = false;
             settings_btn.IsEnabled = false;
             cached_soft_btn.IsEnabled = false;
+            apply_mode_combobox.IsEnabled = false;
+            LanguageComboBox.IsEnabled = false;
+            clear_selected_list_btn.IsEnabled = false;
 
             this.UpdateLayout();
             Thread.Sleep(100);
@@ -480,7 +484,12 @@ namespace Responsible_Program_Manager
             apply_btn.IsEnabled = true;
             settings_btn.IsEnabled = true;
             cached_soft_btn.IsEnabled = true;
+            apply_mode_combobox.IsEnabled = true;
+            LanguageComboBox.IsEnabled = true;
+            clear_selected_list_btn.IsEnabled = true;
 
+            this.UpdateLayout();
+            Thread.Sleep(100);
             this.UpdateLayout();
         }
         
@@ -505,7 +514,7 @@ namespace Responsible_Program_Manager
         {
             try
             {
-                string cacheDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache");
+                string cacheDirectory = Path.Combine("Cache");
                 if (!Directory.Exists(cacheDirectory))
                 {
                     Directory.CreateDirectory(cacheDirectory);
@@ -522,9 +531,38 @@ namespace Responsible_Program_Manager
                         response.EnsureSuccessStatusCode();
 
                         var contentDisposition = response.Content.Headers.ContentDisposition;
-                        if (contentDisposition != null && !string.IsNullOrWhiteSpace(contentDisposition.FileName))
+                        if (contentDisposition != null && !string.IsNullOrWhiteSpace(contentDisposition.FileNameStar))
                         {
                             cachePath = Path.Combine(cacheDirectory, contentDisposition.FileNameStar.Trim('"'));
+                        }
+                        else if (contentDisposition != null && !string.IsNullOrWhiteSpace(contentDisposition.FileName))
+                        {
+                            string rawFileName = contentDisposition.FileName.Trim('"');
+                            try
+                            {
+                                if (rawFileName.StartsWith("=?") && rawFileName.Contains("?Q?"))
+                                {
+                                    var start = rawFileName.IndexOf("?Q?") + 3;
+                                    var end = rawFileName.LastIndexOf("?");
+                                    string encodedPart = rawFileName.Substring(start, end - start);
+
+                                    rawFileName = DecodeQuotedPrintable(encodedPart);
+                                }
+                                else if (rawFileName.StartsWith("=?") && rawFileName.Contains("?B?"))
+                                {
+                                    var start = rawFileName.IndexOf("?B?") + 3;
+                                    var end = rawFileName.LastIndexOf("?");
+                                    string encodedPart = rawFileName.Substring(start, end - start);
+
+                                    byte[] bytes = Convert.FromBase64String(encodedPart);
+                                    rawFileName = Encoding.UTF8.GetString(bytes);
+                                }
+                            }
+                            catch
+                            {
+                            }
+
+                            cachePath = Path.Combine(cacheDirectory, rawFileName);
                         }
                         else
                         {
@@ -535,6 +573,10 @@ namespace Responsible_Program_Manager
                             }
 
                             cachePath = Path.Combine(cacheDirectory, fileName);
+                        }
+                        if (string.IsNullOrWhiteSpace(Path.GetExtension(cachePath)))
+                        {
+                            cachePath = Path.Combine(cacheDirectory, $"{item.CodeName}.exe");
                         }
 
                         var totalBytes = response.Content.Headers.ContentLength ?? -1L;
@@ -611,6 +653,46 @@ namespace Responsible_Program_Manager
                 MessageBox.Show($"{Translator.Translate("Error_WhenDownloadingFile")} {item.Name}: {ex.Message}", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        private string DecodeQuotedPrintable(string input)
+        {
+            var builder = new StringBuilder();
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (input[i] == '=')
+                {
+                    if (i + 2 < input.Length &&
+                        IsHex(input[i + 1]) &&
+                        IsHex(input[i + 2]))
+                    {
+                        string hexValue = input.Substring(i + 1, 2);
+                        int intValue = Convert.ToInt32(hexValue, 16);
+                        builder.Append((char)intValue);
+
+                        i += 2;
+                    }
+                    else
+                    {
+                        builder.Append('=');
+                    }
+                }
+                else
+                {
+                    builder.Append(input[i]);
+                }
+            }
+
+            return builder.ToString();
+        }
+
+        private bool IsHex(char c)
+        {
+            return (c >= '0' && c <= '9') ||
+                   (c >= 'A' && c <= 'F') ||
+                   (c >= 'a' && c <= 'f');
+        }
+
 
         private string CalculateMD5(string filePath)
         {
@@ -692,7 +774,7 @@ namespace Responsible_Program_Manager
         }
 
 
-        private void EnsureIconCached(FileSystemItem item)
+        private async void EnsureIconCached(FileSystemItem item)
         {
             try
             {
@@ -708,7 +790,7 @@ namespace Responsible_Program_Manager
                 {
                     using (HttpClient client = new HttpClient())
                     {
-                        var iconBytes = client.GetByteArrayAsync(item.IconUrl).GetAwaiter().GetResult();
+                        var iconBytes = await client.GetByteArrayAsync(item.IconUrl);
                         File.WriteAllBytes(iconPath, iconBytes);
                     }
                 }

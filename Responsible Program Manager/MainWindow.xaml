@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Responsible_Program_Manager"
         xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="Responsible_Program_Manager.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" MinHeight="395" MinWidth="750">
+        Title="RPM" Height="450" Width="800" MinHeight="395" MinWidth="750">
     <Grid x:Name="MainGrid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="19*"/>
