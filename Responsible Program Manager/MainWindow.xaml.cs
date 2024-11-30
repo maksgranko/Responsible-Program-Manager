@@ -237,7 +237,6 @@ namespace Responsible_Program_Manager
         {
             if (AllApps_ExplorerListBox.SelectedItem is FileSystemItem selectedItem)
             {
-                // Проверяем, существует ли уже элемент в SelectedApps_lbm
                 if (!SelectedApps_lbm.GetAllItems().Any(item => item.CodeName == selectedItem.CodeName))
                 {
                     AllApps_lbm.RemoveSelectedItem();
@@ -280,7 +279,7 @@ namespace Responsible_Program_Manager
 
             var parts = installArguments
                 .Split(';')
-                .Where(part => !string.IsNullOrWhiteSpace(part)) // Убираем пустые строки
+                .Where(part => !string.IsNullOrWhiteSpace(part))
                 .ToArray();
 
             if (parts.Length == 0)
@@ -321,7 +320,7 @@ namespace Responsible_Program_Manager
                 {
                     var filteredItems = AllFileSystemItems
                         .Where(item => item.Categories?.Split(';').Contains(selectedCategory) ?? false)
-                        .Where(item => !selectedItems.Contains(item.CodeName)) // Исключаем уже выбранные
+                        .Where(item => !selectedItems.Contains(item.CodeName))
                         .ToList();
 
                     AllApps_lbm.AddItems(filteredItems);
@@ -484,10 +483,7 @@ namespace Responsible_Program_Manager
 
             this.UpdateLayout();
         }
-
-
-
-        // Метод для открытия папки Cache
+        
         private void OpenCacheFolder(string cacheDirectory)
         {
             try
@@ -504,7 +500,6 @@ namespace Responsible_Program_Manager
                 MessageBox.Show($"{Translator.Translate("Error_FolderWontBeOpened")} Cache: {ex.Message}", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
 
         private void CacheFile(FileSystemItem item)
         {
@@ -823,7 +818,6 @@ namespace Responsible_Program_Manager
             if (cached_Selected_ExplorerListBox.Items.Count == 0) { MessageBox.Show($"{Translator.Translate("Error_NoSelectedApps")}!", Translator.Translate("Error"), MessageBoxButton.OK, MessageBoxImage.Error); return; }
             OnWaiting();
 
-            // Получаем список выделенных приложений
             var selectedItems = cached_SelectedApps_lbm.GetAllItems();
             var successfullyInstalledItems = new List<FileSystemItem>();
 
@@ -832,7 +826,7 @@ namespace Responsible_Program_Manager
                 try
                 {
 
-                    if (InstallFile(item) == true) successfullyInstalledItems.Add(item); // Добавляем в список успешно установленных
+                    if (InstallFile(item) == true) successfullyInstalledItems.Add(item);
                 }
                 catch (Exception ex)
                 {
@@ -842,7 +836,6 @@ namespace Responsible_Program_Manager
 
             OffWaiting();
 
-            // Отображаем сообщение об успешной установке
             if (selectedItems.Count() == successfullyInstalledItems.Count)
             {
                 Dispatcher.Invoke(() => { status_label.Text = $"{Translator.Translate("UI_AllSelectedAppsInstalledSuccessfully")}!"; });
@@ -941,7 +934,7 @@ namespace Responsible_Program_Manager
 
         private void refresh_icon_Loaded(object sender, RoutedEventArgs e)
         {
-            System.Windows.Controls.Image image = sender as System.Windows.Controls.Image;
+            Image image = sender as Image;
             if (image == null) return;
             image.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/reload.png"));
         }
