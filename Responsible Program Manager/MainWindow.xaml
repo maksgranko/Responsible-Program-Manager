@@ -12,7 +12,7 @@
             <ColumnDefinition Width="19*"/>
             <ColumnDefinition Width="61*"/>
         </Grid.ColumnDefinitions>
-        <Grid x:Name="AllSoft_grid" Grid.Column="1" Visibility="Visible">
+        <Grid x:Name="AllSoft_grid" Grid.Column="1" Visibility="Hidden">
             <ListBox x:Name="AllApps_ExplorerListBox" Margin="25,48,25,238" MouseDoubleClick="AllApps_ExplorerListBox_MouseDoubleClick">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
@@ -101,7 +101,7 @@
             <Separator Height="16"/>
             <TextBlock x:Name="status_label" Text="Приложение готово к работе." Height="208" TextWrapping="WrapWithOverflow" Width="174"/>
         </StackPanel>
-        <Grid x:Name="Cachedsoft_grid" Grid.Column="1" Visibility="Hidden">
+        <Grid x:Name="Cachedsoft_grid" Grid.Column="1" Visibility="Visible">
             <ListBox x:Name="cached_AllApps_ExplorerListBox" Margin="25,48,25,238" MouseDoubleClick="cached_AllApps_ExplorerListBox_MouseDoubleClick">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
@@ -164,7 +164,7 @@
 
             <Label x:Name="cached_selected_apps_label" Content="Выбранные приложения:" Margin="25,0,25,203" FontSize="16" MinHeight="32" MinWidth="211" Height="32" VerticalAlignment="Bottom"/>
             <Label x:Name="cached_all_apps_label" Content="Приложения:" Margin="25,11,347,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" MinWidth="139"/>
-            <ComboBox x:Name="cached_categories_cb" Margin="0,16,25,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" Width="120" SelectionChanged="CategoriesComboBox_SelectionChanged"/>
+            <ComboBox x:Name="cached_categories_cb" Margin="0,16,25,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" Width="120" SelectionChanged="CachedCategoriesComboBox_SelectionChanged"/>
             <Label x:Name="cached_categories_label" Content="Категории:" Margin="305,11,150,0" FontSize="16" MinHeight="32" Height="32" VerticalAlignment="Top" HorizontalContentAlignment="Right" MinWidth="91"/>
 
 
@@ -172,7 +172,6 @@
             <Button x:Name="refresh_btn" HorizontalAlignment="Right" Margin="0,10,268,0" VerticalAlignment="Top" Height="33" Width="37" Click="refresh_btn_Click">
                 <Image x:Name="refresh_icon" Height="32" Width="32" Loaded="refresh_icon_Loaded" />
             </Button>
-            <Grid/>
 
         </Grid>
         <Grid x:Name="Settings_grid" Grid.Column="1" Visibility="Hidden">

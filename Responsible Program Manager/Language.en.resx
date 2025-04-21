@@ -214,7 +214,7 @@
     <value>installation completed with error (code</value>
   </data>
   <data name="UI_AppWannaManualSetup" xml:space="preserve">
-    <value>requires manual installation as it is not an installer</value>
+    <value>requires manual installation as it is not an exe-installer</value>
   </data>
   <data name="Error_WhenSetupApp" xml:space="preserve">
     <value>Error during application installation</value>
@@ -223,8 +223,9 @@
     <value>Error while working with the icon</value>
   </data>
   <data name="UI_AboutUsLong" xml:space="preserve">
-    <value>Programmer, tester, developer: Granko Maxim
-Developed specifically for the regional Exhibition of Scientific and Technical Creativity "Youth Technology". 
+    <value>Programmer, Tester, Developer: Granko Maxim Vitalievich
+Instructor, Tester: Manita Sergey Olegovich
+Developed specifically for the Regional Exhibition of Scientific and Technical Creativity "Youth Technology."
 2024</value>
   </data>
   <data name="UI_About" xml:space="preserve">
@@ -336,7 +337,7 @@ Developed specifically for the regional Exhibition of Scientific and Technical C
     <value>Selected apps</value>
   </data>
   <data name="UI_YouSureClearSelected" xml:space="preserve">
-    <value>Are you sure you want to clear the selected software list?</value>
+    <value>Are you sure you want to clear the selected software list</value>
   </data>
   <data name="UI_ClearSelectedList" xml:space="preserve">
     <value>Clear Selected List</value>

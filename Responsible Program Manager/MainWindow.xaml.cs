@@ -46,6 +46,9 @@ namespace Responsible_Program_Manager
             UpdateDatabase();
             //AllFileSystemItems = dbm.GetAllFileSystemItems();
             InitializeComponent();
+            AllSoft_grid.Visibility = Visibility.Visible;
+            Cachedsoft_grid.Visibility = Visibility.Hidden;
+            Settings_grid.Visibility = Visibility.Hidden;
             AllApps_lbm = new ListBoxManager(AllApps_ExplorerListBox);
             SelectedApps_lbm = new ListBoxManager(Selected_ExplorerListBox);
             cached_AllApps_lbm = new ListBoxManager(cached_AllApps_ExplorerListBox);
@@ -329,6 +332,34 @@ namespace Responsible_Program_Manager
             }
         }
 
+        private void CachedCategoriesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (cached_categories_cb.SelectedItem is string selectedCategory)
+            {
+                cached_AllApps_lbm.Clear();
+
+                var selectedItems = cached_SelectedApps_lbm.GetAllItems().Select(item => item.CodeName).ToHashSet();
+
+                if (selectedCategory == Translator.Translate("UI_AllCategories"))
+                {
+                    var filteredItems = cached_AllFileSystemItems
+                        .Where(item => !selectedItems.Contains(item.CodeName))
+                        .ToList();
+
+                    cached_AllApps_lbm.AddItems(filteredItems);
+                }
+                else
+                {
+                    var filteredItems = cached_AllFileSystemItems
+                        .Where(item => item.Categories?.Split(';').Contains(selectedCategory) ?? false)
+                        .Where(item => !selectedItems.Contains(item.CodeName))
+                        .ToList();
+
+                    cached_AllApps_lbm.AddItems(filteredItems);
+                }
+            }
+        }
+
         private void ApplyButton_Click(object sender, RoutedEventArgs e)
         {
             ApplyButton_action();
@@ -385,7 +416,7 @@ namespace Responsible_Program_Manager
                             successfullyInstalledItems.Add(item);
                         }
 
-                        if (apply_mode_combobox.SelectedIndex == 1 && !string.IsNullOrWhiteSpace(item.CachedPath) && !File.Exists(item.CachedPath))
+                        if (apply_mode_combobox.SelectedIndex == 1 && !string.IsNullOrWhiteSpace(item.CachedPath))
                         {
                             await Task.Run(() => DeleteCachedFile(item));
                         }
@@ -471,6 +502,10 @@ namespace Responsible_Program_Manager
             LanguageComboBox.IsEnabled = false;
             clear_selected_list_btn.IsEnabled = false;
 
+            AllApps_ExplorerListBox.IsEnabled = false;
+            cached_AllApps_ExplorerListBox.IsEnabled = false;
+            cached_Selected_ExplorerListBox.IsEnabled = false;
+            Selected_ExplorerListBox.IsEnabled = false;
             this.UpdateLayout();
             Thread.Sleep(100);
             this.UpdateLayout();
@@ -488,11 +523,16 @@ namespace Responsible_Program_Manager
             LanguageComboBox.IsEnabled = true;
             clear_selected_list_btn.IsEnabled = true;
 
+            AllApps_ExplorerListBox.IsEnabled = true;
+            cached_AllApps_ExplorerListBox.IsEnabled = true;
+            cached_Selected_ExplorerListBox.IsEnabled = true;
+            Selected_ExplorerListBox.IsEnabled = true;
+
             this.UpdateLayout();
             Thread.Sleep(100);
             this.UpdateLayout();
         }
-        
+
         private void OpenCacheFolder(string cacheDirectory)
         {
             try
@@ -990,12 +1030,24 @@ namespace Responsible_Program_Manager
             {
                 selectedItems = SelectedApps_lbm.GetAllItems().Select(item => item.CodeName).ToHashSet();
             }
-            var filteredItems = AllFileSystemItems
+            List<FileSystemItem> filteredItems = null;
+            if (selectedItems == null || selectedItems.Count == 0)
+            {
+                filteredItems = AllFileSystemItems
                 .Where(item =>
                     (item.Name?.ToLowerInvariant().Contains(search) == true ||
-                     item.Publisher?.ToLowerInvariant().Contains(search) == true) &&
-                    !selectedItems.Contains(item.CodeName))
+                     item.Publisher?.ToLowerInvariant().Contains(search) == true))
                 .ToList();
+            }
+            else
+            {
+                filteredItems = AllFileSystemItems
+               .Where(item =>
+                   (item.Name?.ToLowerInvariant().Contains(search) == true ||
+                    item.Publisher?.ToLowerInvariant().Contains(search) == true) &&
+                   !selectedItems.Contains(item.CodeName))
+               .ToList();
+            }
 
             AllApps_lbm.Clear();
             AllApps_lbm.AddItems(filteredItems);
@@ -1030,28 +1082,30 @@ namespace Responsible_Program_Manager
         {
             if (MessageBox.Show(Translator.Translate("UI_ClearCacheWarning"), Translator.Translate("Warning") + "!", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
-                Directory.Delete(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache"), true);
-
                 try
                 {
                     string cachePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache");
                     if (Directory.Exists(cachePath))
                         Directory.Delete(cachePath, true);
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"{Translator.Translate("Error_CacheClearFailed")}: {ex.Message}");
-                }
+                catch { }
                 try
                 {
+                    string cachePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "apps.db");
+                    if (File.Exists(cachePath)) File.Delete(cachePath);
+                }
+                catch { }
+                Application.Current.MainWindow = new MainWindow();
+                try
+                {
+                    Close();
                     string cachePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "IconCache");
                     if (Directory.Exists(cachePath))
                         Directory.Delete(cachePath, true);
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"{Translator.Translate("Error_IconCacheClearFailed")}: {ex.Message}");
-                }
+                catch { }
+                new MainWindow().ShowDialog();
+                Environment.Exit(0);
             }
         }
 
@@ -1071,7 +1125,7 @@ namespace Responsible_Program_Manager
 
         private void clear_selected_list_btn_Click(object sender, RoutedEventArgs e)
         {
-            if(MessageBox.Show(Translator.Translate("UI_YouSureClearSelected")+"?",Translator.Translate("Warning"),MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            if (MessageBox.Show(Translator.Translate("UI_YouSureClearSelected") + "?", Translator.Translate("Warning"), MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
                 SelectedApps_lbm.Clear();
                 Selected_ExplorerListBox.Items.Clear();
